@@ -84,18 +84,6 @@ const getPlayerChunk = (player) => {
   }
 }
 
-const getStateChunk = (player, playerGame) => {
-  if (player === null) {
-    return "";
-  }
-  if (game === null) {
-    return `<p>Peli ei ole vielä alkanut. Rekisteröityneet pelaajat: }</p>
-    <form id="startGameForm" onsubmit="postForm('/startGame', document.getElementById('startGameForm')); return false;">
-     <input type="submit" value="Aloita peli" />
-     </form>`;
-  }
-}
-
 const getPlayersDisplayList = () => {
   const strList = [];
   for (const player of allRegisteredPlayers) {
