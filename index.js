@@ -112,7 +112,7 @@ app.post('/register', (req, res) => {
   console.log('Player register request:', req.body);
   if (req.body !== undefined && req.body.jsonData !== undefined) {
     if (getPlayer(req.session) !== null) {
-      sendContent(req, res, 'Olet jo rekisteröinyt!');
+      sendContent(req, res, 'You are already registered!');
       return;
     }
     try {
