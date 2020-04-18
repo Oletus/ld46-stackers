@@ -102,7 +102,8 @@ app.use('/common', express.static('common'));
 const sendContent = (req, res, notification) => {
   const player = getPlayer(req.session);
   const responseJson = {
-    pageContentHTML: getPlayerChunk(player)
+    pageContentHTML: getPlayerChunk(player),
+    playerRegistered: player !== null,
   };
   const gameState = gameList.getCurrentGameForPlayer(player);
   if (gameState !== null) {

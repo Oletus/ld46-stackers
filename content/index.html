@@ -39,12 +39,12 @@ import { PlayerState } from './common/PlayerState.js';
 
 let contentDiv;
 
-const playerState = PlayerState.UNREGISTERED;
+let playerState = PlayerState.UNREGISTERED;
 
 const delayBetweenRefresh = 2000;
 
-const pollContentFromServer = () => {
-  return false;
+const pollStateFromServer = () => {
+  return playerState === PlayerState.IN_GAME || playerState === PlayerState.REGISTERED;
 }
 
 const replacePage = (html) => {
@@ -56,17 +56,25 @@ const setStateFromResponse = (responseText, resetClient) => {
   if (resetClient && response.hasOwnProperty("pageContentHTML")) {
     replacePage(response.pageContentHTML);
   }
+  if (response.hasOwnProperty("gameState")) {
+    console.log("Received game state from server: " + response.gameState);
+    playerState = PlayerState.IN_GAME;
+    // TODO: Should update the game on the client based on the game state!
+  } else if (response.hasOwnProperty("playerRegistered") && response.playerRegistered) {
+    playerState = PlayerState.REGISTERED;
+  }
   if (response.hasOwnProperty("notification")) {
     console.log(response.notification);
   }
-  if (pollContentFromServer()) {
+
+  if (pollStateFromServer()) {
     setTimeout(() => pollState(false), delayBetweenRefresh);
   }
 }
 
 const errorListener = () => {
   console.warning("XMLHttpRequest error!");
-  if (pollContentFromServer()) {
+  if (pollStateFromServer()) {
     setTimeout(() => pollState(true), delayBetweenRefresh);
   }
 }
@@ -87,7 +95,7 @@ window.postForm = (url, formElement, resetClient) => {
   post(url, formToJSON(formElement), resetClient);
 }
 
-const post = (url, jsonData, resetClient) => {
+window.post = (url, jsonData, resetClient) => {
   var postReq = new XMLHttpRequest();
   function reqListener() {
     setStateFromResponse(postReq.responseText, resetClient);
