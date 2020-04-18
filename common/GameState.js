@@ -71,12 +71,35 @@ class GameState {
     if (playerIndex != this.state.turn)
       return false;
     
-    //TODO: validate placement vs constraints
-    //const domino = this.state.dominos[pieceId];
-    
     if (this.state.board[slotCoord.y][slotCoord.x] !== 0)
       return false;
+
+    const domino = this.state.dominos[pieceId];
     
+    // gold pieces must be on top
+    if (domino.primary === 0 && slotCoord.y !== 0) {
+        return false;
+    }
+    // only gold pieces can be on top
+    if (domino.primary !== 0 && slotCoord.y === 0) {
+        return false;
+    }
+
+    // require support of the proper colors
+    if (this.state.board.length > slotCoord.y + 1) {
+      var left = this.state.board[slotCoord.y + 1][slotCoord.x]
+      if (left === 0)
+        return false;
+      var right = this.state.board[slotCoord.y + 1][slotCoord.x + 1]
+      if (right === 0)
+        return false;
+
+      left = this.state.dominos[left];
+      right = this.state.dominos[right];
+      if (domino.left !== left.primary || domino.right !== right.primary)
+        return false;
+    }
+
     var deck = this.state.decks[playerIndex];
     var newDeck = deck.filter(value => value != pieceId);
     // piece wasn't in deck
