@@ -158,6 +158,40 @@ app.post('/startGame', (req, res) => {
   gameList.startGame((players) => new GameState(players), [allRegisteredPlayers[0], allRegisteredPlayers[1]]);
 });
 
+app.post('/place_piece', (req, res) => {
+  const player = getPlayer(req.session);
+  if (player === null) {
+    sendContent(req, res, 'You are not registered!');
+    return;
+  }
+  console.log('Player requested piece placement:', player.name, req.body)
+  if (req.body === undefined) {
+    sendContent(req, res, 'Request malformed');
+    return;
+  }
+  var game = gameList.getCurrentGameForPlayer(player);
+  if (game === undefined) {
+    sendContent(req, res, 'You are not part of a game');
+    return;
+  }
+
+  try {
+    const pieceId = req.body.pieceId;
+    const slot = {y: req.body.slotY, x: req.body.slotX};
+
+    var success = game.placePiece(player.name, pieceId, slot);
+    if (success)
+      sendContent(req, res);
+    else
+      sendContent(req, res, "Failed to place piece there");
+
+    console.log('Player piece placement processed:', game.id, req.body)
+    return;
+  } catch(err) {
+    sendContent(req, res, 'Request failed');
+  }
+});
+
 app.listen(config.port, (err) => {
   if (err) {
     return console.log('something bad happened', err)

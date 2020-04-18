@@ -65,6 +65,28 @@ class GameState {
     this.registerDomino(domino)
     return domino
   }
+  
+  placePiece(playerName, pieceId, slotCoord) {
+    const playerIndex = this.players[0].name == playerName ? 0 : 1;
+    if (playerIndex != this.state.turn)
+      return false;
+    
+    //TODO: validate placement vs constraints
+    //const domino = this.state.dominos[pieceId];
+    
+    if (this.state.board[slotCoord.y][slotCoord.x] !== 0)
+      return false;
+    
+    var deck = this.state.decks[playerIndex];
+    var newDeck = deck.filter(value => value != pieceId);
+    // piece wasn't in deck
+    if (newDeck.length == deck.length)
+      return false;
+    
+    this.state.decks[playerIndex] = newDeck;
+    this.state.board[slotCoord.y][slotCoord.x] = pieceId
+    this.state.turn = (playerIndex + 1) % 2;
+  }
 }
 
 export { GameState }
