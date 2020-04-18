@@ -33,9 +33,13 @@ const formToJSON = elements => [].reduce.call(elements, (data, element) => {
 }, {});
 
 </script>
-<script type="text/javascript">
+<script type="module">
+
+import { PlayerState } from './common/PlayerState.js';
 
 let contentDiv;
+
+const playerState = PlayerState.UNREGISTERED;
 
 const delayBetweenRefresh = 2000;
 
@@ -47,30 +51,30 @@ const replacePage = (html) => {
   contentDiv.innerHTML = html;
 }
 
-const setStateFromResponse = (responseText) => {
-  response = JSON.parse(responseText);
-  if (response.hasOwnProperty("pageContentHTML")) {
+const setStateFromResponse = (responseText, resetClient) => {
+  const response = JSON.parse(responseText);
+  if (resetClient && response.hasOwnProperty("pageContentHTML")) {
     replacePage(response.pageContentHTML);
   }
   if (response.hasOwnProperty("notification")) {
     console.log(response.notification);
   }
   if (pollContentFromServer()) {
-    setTimeout(refresh, delayBetweenRefresh);
+    setTimeout(() => pollState(false), delayBetweenRefresh);
   }
 }
 
 const errorListener = () => {
   console.warning("XMLHttpRequest error!");
   if (pollContentFromServer()) {
-    setTimeout(refresh, delayBetweenRefresh);
+    setTimeout(() => pollState(true), delayBetweenRefresh);
   }
 }
 
-const refresh = () => {
+const pollState = (resetClient) => {
   var refreshReq = new XMLHttpRequest();
   function reqListener() {
-    setStateFromResponse(refreshReq.responseText);
+    setStateFromResponse(refreshReq.responseText, resetClient);
   }
 
   refreshReq.addEventListener("load", reqListener);
@@ -79,14 +83,14 @@ const refresh = () => {
   refreshReq.send();
 }
 
-const postForm = (url, formElement) => {
-  post(url, formToJSON(formElement));
+window.postForm = (url, formElement, resetClient) => {
+  post(url, formToJSON(formElement), resetClient);
 }
 
-const post = (url, jsonData) => {
+const post = (url, jsonData, resetClient) => {
   var postReq = new XMLHttpRequest();
   function reqListener() {
-    setStateFromResponse(postReq.responseText);
+    setStateFromResponse(postReq.responseText, resetClient);
   }
 
   postReq.addEventListener("load", reqListener);
@@ -100,12 +104,13 @@ const post = (url, jsonData) => {
 
 const start = () => {
   contentDiv = document.getElementById("content");
-  refresh();
+  pollState(true);
 }
 
+start();
 </script>
 </head>
-<body onload="start()">
+<body>
 <div id="content"></div>
 </body>
 </html>

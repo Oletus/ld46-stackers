@@ -70,13 +70,13 @@ const getPlayerChunk = (player) => {
     // TODO: Shouldn't show a list of all players on the server here.
     if (gameList.getCurrentGameForPlayer(player) === null) {
       playerInfoChunk = ` All players on server: ${getPlayersDisplayList()}.
-     <div class="formGrid"><form id="startGameForm" onsubmit="postForm('/startGame', document.getElementById('startGameForm')); return false;">
+     <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
      <input type="submit" value="Start game" />
      </form></div>`;
     }
     return `<div class="registeredPlayer">You are: ${escapeHTML(player.name)}.${playerInfoChunk}</div>`
   } else {
-    return `<div class="unregisteredPlayer"><form id="registerForm" onsubmit="postForm('/register', document.getElementById('registerForm')); return false;">
+    return `<div class="unregisteredPlayer"><form id="registerForm" onsubmit="window.postForm('/register', document.getElementById('registerForm'), true); return false;">
      Your name: 
      <input type="text" name="playerName" />
      <input type="submit" value="Register" />
@@ -97,6 +97,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(express.static('content/static'));
+app.use('/common', express.static('common'));
 
 const sendContent = (req, res, notification) => {
   const player = getPlayer(req.session);
