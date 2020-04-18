@@ -1,0 +1,114 @@
+<html>
+<head>
+<title>Desque</title>
+<link rel="stylesheet" type="text/css" href="/style.css">
+<script type="text/javascript">
+
+const isCheckbox = element => element.type === 'checkbox';
+
+const isValidElement = element => {
+  return element.name && element.value;
+};
+
+const isValidValue = element => {
+  return (!['checkbox', 'radio'].includes(element.type) || element.checked);
+};
+
+const clearValidity = elementName => {
+  const list = document.getElementsByName(elementName);
+  for (let el of list) {
+    el.setCustomValidity('');
+  }
+};
+
+const formToJSON = elements => [].reduce.call(elements, (data, element) => {
+  if (isValidElement(element) && isValidValue(element)) {
+    if (isCheckbox(element)) {
+      data[element.name] = (data[element.name] || []).concat(element.value);
+    } else {
+      data[element.name] = element.value;
+    }
+  }
+  return data;
+}, {});
+
+</script>
+<script type="text/javascript">
+
+let contentDiv;
+
+const delayBetweenRefresh = 2000;
+
+const pollContentFromServer = () => {
+  return false;
+}
+
+const replacePage = (html) => {
+  contentDiv.innerHTML = html;
+}
+
+const setStateFromResponse = (responseText) => {
+  response = JSON.parse(responseText);
+  if (response.hasOwnProperty("pageContentHTML")) {
+    replacePage(response.pageContentHTML);
+  }
+  if (response.hasOwnProperty("newState")) {
+    state = response.newState;
+  }
+  if (response.hasOwnProperty("notification")) {
+    console.log(response.notification);
+  }
+  if (pollContentFromServer()) {
+    setTimeout(refresh, delayBetweenRefresh);
+  }
+}
+
+const errorListener = () => {
+  console.warning("XMLHttpRequest error!");
+  if (refreshWhileInState(state)) {
+    setTimeout(refresh, delayBetweenRefresh);
+  }
+}
+
+const refresh = () => {
+  var refreshReq = new XMLHttpRequest();
+  function reqListener() {
+    setStateFromResponse(refreshReq.responseText);
+  }
+
+  refreshReq.addEventListener("load", reqListener);
+  refreshReq.addEventListener("error", errorListener);
+  refreshReq.open("GET", "/content");
+  refreshReq.send();
+}
+
+const postForm = (url, formElement) => {
+  post(url, formToJSON(formElement));
+}
+
+const post = (url, jsonData) => {
+  var postReq = new XMLHttpRequest();
+  function reqListener() {
+    setStateFromResponse(postReq.responseText);
+  }
+
+  postReq.addEventListener("load", reqListener);
+  postReq.addEventListener("error", errorListener);
+  postReq.open("POST", url);
+  postReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  const jsonString = JSON.stringify(jsonData);
+  postReq.send("jsonData=" + encodeURIComponent(jsonString));
+}
+
+const start = () => {
+  contentDiv = document.getElementById("content");
+  refresh();
+}
+
+</script>
+</head>
+<body onload="start()">
+<div id="content"></div>
+</body>
+</html>
