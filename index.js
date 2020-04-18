@@ -65,7 +65,6 @@ const getPlayer = (session) => {
 }
 
 const indexHTML = fs.readFileSync('content/index.html', 'utf8');
-const styleCSS = fs.readFileSync('content/style.css', 'utf8');
 
 const getPlayerChunk = (player) => {
   if (player !== null) {
@@ -91,9 +90,7 @@ app.get('/', (req, res) => {
   res.send(indexHTML);
 });
 
-app.get('/style.css', (req, res) => {
-  res.send(styleCSS);
-});
+app.use(express.static('content/static'));
 
 const sendContent = (req, res, notification) => {
   const player = getPlayer(req.session);
