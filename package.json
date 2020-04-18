@@ -1,0 +1,19 @@
+{
+  "name": "ld46stackers",
+  "version": "0.1.0",
+  "description": "Ludum Dare 46 Game",
+  "main": "index.js",
+  "scripts": {
+    "server": "node --experimental-modules index.js"
+  },
+  "type": "module",
+  "author": "Olli Etuaho",
+  "license": "proprietary",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "gm": "1.23.1",
+    "image-size": "^0.8.3",
+    "yargs": "^15.3.1"
+  }
+}
