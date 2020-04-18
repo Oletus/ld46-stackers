@@ -6,6 +6,10 @@ import path from 'path';
 import imageSize from 'image-size';
 import yargs from 'yargs';
 
+import { GameState } from './common/GameState.js';
+import { Player } from './gamelobby/Player.js';
+import { GameList } from './gamelobby/GameList.js';
+
 const prepareCommands = () => yargs
   .alias('p', 'port')
   .describe('p', 'Server port')
@@ -45,14 +49,8 @@ const escapeHTML = (unsafe) => {
   });
 };
 
-class Player {
-  constructor(id, name) {
-    this.id = "" + id;
-    this.name = name;
-  }
-}
-
 let allRegisteredPlayers = [];
+const gameList = new GameList();
 
 const getPlayer = (session) => {
   if (!session.hasOwnProperty("playerId")) {
@@ -68,13 +66,33 @@ const indexHTML = fs.readFileSync('content/index.html', 'utf8');
 
 const getPlayerChunk = (player) => {
   if (player !== null) {
-    return `<div class="registeredPlayer">You are: ${escapeHTML(player.name)}.</div>`
+    let playerInfoChunk = "";
+    // TODO: Shouldn't show a list of all players on the server here.
+    if (gameList.getCurrentGameForPlayer(player) === null) {
+      playerInfoChunk = ` All players on server: ${getPlayersDisplayList()}.
+     <div class="formGrid"><form id="startGameForm" onsubmit="postForm('/startGame', document.getElementById('startGameForm')); return false;">
+     <input type="submit" value="Start game" />
+     </form></div>`;
+    }
+    return `<div class="registeredPlayer">You are: ${escapeHTML(player.name)}.${playerInfoChunk}</div>`
   } else {
     return `<div class="unregisteredPlayer"><form id="registerForm" onsubmit="postForm('/register', document.getElementById('registerForm')); return false;">
      Your name: 
      <input type="text" name="playerName" />
      <input type="submit" value="Register" />
      </form></div>`;
+  }
+}
+
+const getStateChunk = (player, playerGame) => {
+  if (player === null) {
+    return "";
+  }
+  if (game === null) {
+    return `<p>Peli ei ole vielä alkanut. Rekisteröityneet pelaajat: }</p>
+    <form id="startGameForm" onsubmit="postForm('/startGame', document.getElementById('startGameForm')); return false;">
+     <input type="submit" value="Aloita peli" />
+     </form>`;
   }
 }
 
@@ -97,6 +115,10 @@ const sendContent = (req, res, notification) => {
   const responseJson = {
     pageContentHTML: getPlayerChunk(player)
   };
+  const gameState = gameList.getCurrentGameForPlayer(player);
+  if (gameState !== null) {
+    responseJson.gameState = gameState.toJSON();
+  }
   if (notification !== undefined) {
     responseJson.notification = notification;
   }
@@ -126,6 +148,24 @@ app.post('/register', (req, res) => {
     } catch(err) {}
   }
   sendContent(req, res, 'Something went wrong.');
+});
+
+app.post('/startGame', (req, res) => {
+  const player = getPlayer(req.session);
+  if (player === null) {
+    sendContent(req, res, 'You are not registered!');
+    return;
+  }
+  if (allRegisteredPlayers.length < 2) {
+    sendContent(req, res, 'Need two players present to start the game!');
+    return;
+  }
+  if (allRegisteredPlayers[0] !== player && allRegisteredPlayers[1] !== player) {
+    // TODO: Implement a better lobby system.
+    sendContent(req, res, 'You need to be one of the first 2 players on the server to start the game!');
+    return;
+  }
+  gameList.startGame((players) => new GameState(players), [allRegisteredPlayers[0], allRegisteredPlayers[1]]);
 });
 
 app.listen(config.port, (err) => {
