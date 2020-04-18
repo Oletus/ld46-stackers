@@ -52,9 +52,6 @@ const setStateFromResponse = (responseText) => {
   if (response.hasOwnProperty("pageContentHTML")) {
     replacePage(response.pageContentHTML);
   }
-  if (response.hasOwnProperty("newState")) {
-    state = response.newState;
-  }
   if (response.hasOwnProperty("notification")) {
     console.log(response.notification);
   }
@@ -65,7 +62,7 @@ const setStateFromResponse = (responseText) => {
 
 const errorListener = () => {
   console.warning("XMLHttpRequest error!");
-  if (refreshWhileInState(state)) {
+  if (pollContentFromServer()) {
     setTimeout(refresh, delayBetweenRefresh);
   }
 }
