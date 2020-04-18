@@ -1,0 +1,671 @@
+<html>
+<head>
+<title>Gameutils.js Particle Effect Editor</title>
+<style>
+#ui {
+    position: relative;
+    left: 0;
+    top: 0;
+}
+
+#codeContainer {
+    position: absolute;
+    left: 640px;
+    top: 0;
+}
+
+#codeContainer h2 {
+    margin-top: 0;
+}
+
+#codeContainer textarea {
+    white-space: pre;
+    word-wrap: normal;
+    overflow-x: scroll;
+}
+
+#controls {
+    margin: 10px 0;
+}
+
+#instructions {
+    width: 600px;
+}
+
+#emitterChoice {
+    margin: 5px 0;
+}
+</style>
+<script src="../src/sprite.js"></script><!-- required for GJS.Particle.prerenderedCircleAppearance -->
+<script src="../src/particle.js"></script>
+<script src="../src/lib/dat.gui.js"></script>
+<script src="../src/lib/tween.min.js"></script>
+<script src="../src/gameparameters.js"></script>
+<script>
+'use strict';
+
+var ctx;
+var editor;
+
+var loadFileInput = function(fileInput, urlCallback) {
+    var file = fileInput.files[0];
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+        urlCallback(evt.target.result);
+    };
+    reader.readAsDataURL(file);
+};
+
+var loadSpriteFromFileInput = function() {
+    var fileInput = document.getElementById('imageFile');
+    loadFileInput(fileInput, function(fileSrc) {
+        editor.parameters.set('spriteURL', fileSrc);
+    });
+};
+
+var loadBGFromFileInput = function() {
+    var fileInput = document.getElementById('bgFile');
+    loadFileInput(fileInput, function(fileSrc) {
+        editor.bg = new GJS.Sprite(fileSrc);
+    });
+};
+
+var AppearanceOptionSet = function() {
+    this.sprite = null;
+    this.color = '#fff';
+    this.colorSprite = false;
+    this.codePrefix = '';
+    this.code = '';
+    this.options = {
+        size: 10,
+        opacity: 1,
+        sizeFunc: GJS.Particle.fadeOutLinear,
+        opacityFunc: GJS.Particle.fastAppearSlowDisappear
+    };
+    this.loadedOptions = {};
+    this.loadedSpriteURL = '';
+};
+
+var Editor = function() {
+    this.particles = new GJS.ParticleEngine({});
+    this.editEmitterIndex = 0;
+    this.emitters = [];
+    this.timedEmitters = [];
+    this.appearanceOptions = [];
+    this.bg = null;
+    
+    this.codeArea = document.createElement('textarea');
+    this.codeArea.cols = 70;
+    this.codeArea.rows = 35;
+    this.codeArea.readOnly = true;
+
+    this.codeDiv = document.createElement('div');
+    this.codeDiv.id = 'codeContainer';
+    var codeHeader = document.createElement('h2');
+    codeHeader.textContent = 'Code output';
+    this.codeDiv.appendChild(codeHeader);
+    this.codeDiv.appendChild(this.codeArea);
+    
+    this.positionMode = Editor.PositionMode.STATIC;
+    
+    this.parameters = new GameParameters(particleParameters);
+    this.parameters.initGUI(
+        {
+          "preset": "Trail",
+          "remembered": {
+            "Default": {
+              "0": {
+                "minVelocity": 10,
+                "maxVelocity": 80,
+                "positionSpread": 10,
+                "direction": 0,
+                "directionSpread": 360,
+                "minLifetime": 1,
+                "maxLifetime": 3,
+                "size": 5,
+                "opacity": 1,
+                "inertia": 1,
+                "weight": 100,
+                "directionMode": "RELATIVE",
+                "particleInterval": 0.016666666666666666
+              }
+            },
+            "Trail": {
+              "0": {
+                "minVelocity": 10,
+                "maxVelocity": 54.19137793500506,
+                "positionSpread": 10,
+                "direction": 180,
+                "directionSpread": 20,
+                "minLifetime": 1,
+                "maxLifetime": 3,
+                "size": 29.970710644053703,
+                "opacity": 1,
+                "inertia": 1,
+                "weight": -67.48517323899696,
+                "directionMode": "RELATIVE",
+                "particleInterval": 0.011437343206279846
+              }
+            }
+          },
+          "closed": false,
+          "folders": {}
+        }
+    );
+
+    this.addEmitter(ctx.canvas.width * 0.5, ctx.canvas.height * 0.5);
+};
+
+Editor.PositionMode = {
+    FOLLOW: 0,
+    STATIC: 1
+};
+
+var reverseEnum = function(enumr) {
+    var arr = [];
+    for (var key in enumr) {
+        if (enumr.hasOwnProperty(key)) {
+            arr[enumr[key]] = key;
+        }
+    }
+    return arr;
+};
+
+Editor.ReverseRotationMode = reverseEnum(GJS.Particle.RotationMode);
+Editor.ReverseDirectionMode = reverseEnum(GJS.ParticleTimedEmitter.DirectionMode);
+
+Editor.prototype.restartEffect = function() {
+    this.time = 0;
+    if (this.effect && !this.effect.isInfinite()) {
+        // Play the previous effect to its end.
+        var x = this.effect.emitters[0].x;
+        var y = this.effect.emitters[0].y;
+        this.particles.addEffect(this.effect);
+        this.effect = new GJS.ParticleEffect();
+        for (var i = 0; i < this.emitters.length; ++i) {
+            this.timedEmitters[i] = new GJS.ParticleTimedEmitter({
+                emitter: this.emitters[i],
+                engine: this.particles,
+                x: x,
+                y: y,
+                directionMode: this.timedEmitters[i].directionMode,
+                particleInterval: this.timedEmitters[i].particleInterval,
+                lifetime: this.timedEmitters[i].lifetime,
+                waitTime: this.timedEmitters[i].waitTime,
+                maxParticleCount: this.timedEmitters[i].maxParticleCount
+            });
+        }
+    } else {
+        this.effect = new GJS.ParticleEffect();
+    }
+    for (var i = 0; i < this.timedEmitters.length; ++i) {
+        this.timedEmitters[i].restart();
+        this.effect.emitters.push(this.timedEmitters[i]);
+    }
+    this._sinceDead = 0;
+};
+
+Editor.prototype.setEffectCoords = function(x, y) {
+    this.effect.setCoords(x, y);
+};
+
+/**
+ * Add an emitter using parameters currently set in the UI.
+ */
+Editor.prototype.addEmitter = function(x, y) {
+    if (x === undefined && this.timedEmitters.length > 0) {
+        x = this.timedEmitters[0].x;
+        y = this.timedEmitters[0].y;
+    }
+    var index = this.emitters.length;
+
+    this.appearanceOptions.push(new AppearanceOptionSet());
+    this.emitters.push(new GJS.ParticleEmitter({}));
+    var posX = x;
+    var posY = y;
+    if (this.positionMode === Editor.PositionMode.FOLLOW) {
+        var width = ctx.canvas.width;
+        var height = ctx.canvas.height;
+        posX = width * 0.5 + Math.sin(this.time * 2.9) * width * 0.4;
+        posY = height * 0.5 + Math.cos(this.time * 1.9) * height * 0.4;
+    }
+
+    this.timedEmitters.push(
+        new GJS.ParticleTimedEmitter({
+            emitter: this.emitters[index],
+            engine: this.particles,
+            x: posX,
+            y: posY
+        })
+    );
+
+    // Update the parameters of the new emitter from whatever is in the UI.
+    this.updateEmitterFromUI(index);
+    this.updateAppearanceFromUI(index);
+
+    this.updateEmitterChoice(index);
+
+    this.editEmitter(index);
+    this.restartEffect();
+};
+
+Editor.prototype.deleteEmitter = function() {
+    if (this.emitters.length === 0) {
+        return;
+    }
+    this.appearanceOptions.splice(this.editEmitterIndex, 1);
+    this.emitters.splice(this.editEmitterIndex, 1);
+    this.timedEmitters.splice(this.editEmitterIndex, 1);
+    this.editEmitterIndex = -1;
+    this.editEmitter(0);
+    this.updateEmitterChoice(0);
+    this.restartEffect();
+};
+
+Editor.prototype.updateEmitterChoice = function(chosenIndex) {
+    var emitterChoice = [];
+    for (var i = 0; i < this.emitters.length; ++i) {
+        var checked = (i === chosenIndex ? ' checked' : '');
+        emitterChoice.push('<input type="radio" name="emitter" onclick="editor.editEmitter(' + i + ')" id="emitter' + i + '"' + checked + '></input>');
+        emitterChoice.push('<label for="emitter' + i + '">Edit emitter ' + i + '</label>');
+        emitterChoice.push('<br>');
+    }
+    document.getElementById('emitterChoice').innerHTML = emitterChoice.join('\n');
+};
+
+/**
+ * Choose an emitter for editing, setting UI values to the values stored in that emitter.
+ * @param {number} index Index of the emitter to edit.
+ */
+Editor.prototype.editEmitter = function(index) {
+    if (this.editEmitterIndex !== index) {
+        this.editEmitterIndex = index;
+        var emitter = this.emitters[index];
+        for (var key in emitter.options) {
+            if (emitter.options.hasOwnProperty(key)) {
+                this.parameters.set(key, emitter.options[key]);
+            }
+        }
+        this.parameters.set('rotationMode', Editor.ReverseRotationMode[emitter.options.rotationMode]);
+        var te = this.timedEmitters[index];
+        this.parameters.set('directionMode', Editor.ReverseDirectionMode[te.directionMode]);
+        this.parameters.set('particleInterval', te.particleInterval);
+        var stops = te.lifetime >= 0;
+        this.parameters.set('effect stops', stops);
+        this.parameters.set('effect lifetime', (stops ? te.lifetime : 1));
+        this.parameters.set('effect wait time', te.waitTime);
+        var limit = (te.maxParticleCount >= 0);
+        this.parameters.set('limit particle count', limit);
+        this.parameters.set('maxParticleCount', limit ? te.maxParticleCount : 1);
+        
+        var optionSet = this.appearanceOptions[index];
+        if (optionSet.sprite) {
+            this.parameters.set('spriteURL', optionSet.sprite.filename);
+        } else {
+            this.parameters.set('spriteURL', '');
+        }
+        this.parameters.set('color', optionSet.color);
+        this.parameters.set('colorSprite', optionSet.colorSprite);
+        for (var key in optionSet.options) {
+            if (optionSet.options.hasOwnProperty(key)) {
+                if (typeof optionSet.options[key] === 'function') {
+                    this.parameters.set(key, Editor.functionCode(optionSet.options[key]));
+                } else {
+                    this.parameters.set(key, optionSet.options[key]);
+                }
+            }
+        }
+    }
+};
+
+Editor.prototype.generateCode = function() {
+    var code = [];
+    
+    var setIndent = function(n) {
+        code.push = function(str) {
+            var prefix = Array(n + 1).join('    ');
+            Array.prototype.push.call(code, prefix + str);
+        };
+    };
+    
+    var indent = 0;
+    var pushIndent = function() {
+        ++indent;
+        setIndent(indent);
+    };
+    var popIndent = function() {
+        --indent;
+        setIndent(indent);
+    };
+
+    code.push('(function() {');
+    pushIndent();
+    code.push('var drawScale = GJS.ParticleEngine.defaultEditorEffectScale;');
+    
+    var specialEmitterKeys = {'x': false, 'y': false, 'appearance': false};
+    for (var i = 0; i < this.emitters.length; ++i) {
+        if (this.appearanceOptions[i].codePrefix != '') {
+            code.push(this.appearanceOptions[i].codePrefix);
+        }
+        code.push('var appearance' + i + ' = ' + this.appearanceOptions[i].code + ';');
+        code.push('var emitter' + i + ' = new GJS.ParticleEmitter({');
+        pushIndent();
+        for (var key in this.emitters[i].options) {
+            if (this.emitters[i].options.hasOwnProperty(key) && !specialEmitterKeys.hasOwnProperty(key)) {
+                if (typeof this.emitters[i].options[key] === 'string') {
+                    code.push(key + ': "' + this.emitters[i].options[key] + '",');
+                } else if (key === 'positionSpread' || key === 'minVelocity' || key === 'maxVelocity' || key == 'weight') {
+                    code.push(key + ': ' + this.emitters[i].options[key] + ' / drawScale,');
+                } else {
+                    code.push(key + ': ' + this.emitters[i].options[key] + ',');
+                }
+            }
+        }
+        code.push('appearance: appearance' + i + ',');
+        // Remove extra comma
+        code[code.length - 1] = code[code.length - 1].substring(0, code[code.length - 1].length - 1);
+        popIndent();
+        code.push('});');
+    }
+    code.push('return function(engine) {');
+    pushIndent();
+    code.push('var effect = new GJS.ParticleEffect();');
+    for (var i = 0; i < this.emitters.length; ++i) {
+        code.push('var timedEmitter' + i + ' = new GJS.ParticleTimedEmitter({');
+        pushIndent();
+        code.push('emitter: emitter' + i + ',');
+        code.push('engine: engine,');
+        code.push('directionMode: ' + this.timedEmitters[i].directionMode + ',');
+        code.push('particleInterval: ' + this.timedEmitters[i].particleInterval + ',');
+        code.push('lifetime: ' + this.timedEmitters[i].lifetime + ',');
+        code.push('waitTime: ' + this.timedEmitters[i].waitTime + ',');
+        code.push('maxParticleCount: ' + this.timedEmitters[i].maxParticleCount + ',');
+        // Remove extra comma
+        code[code.length - 1] = code[code.length - 1].substring(0, code[code.length - 1].length - 1);
+        popIndent();
+        code.push('});');
+        code.push('effect.emitters.push(timedEmitter' + i + ');');
+    }
+    code.push('return effect;');
+    popIndent();
+    code.push('};');
+    popIndent();
+    code.push('})();');
+    return code.join('\n');
+};
+
+Editor.prototype.testCode = function() {
+    var createFunc = eval(this.generateCode());
+    var effect = eval(createFunc(this.particles));
+    effect.setCoords(ctx.canvas.width * 0.5, ctx.canvas.height * 0.5);
+    this.particles.addEffect(effect);
+};
+
+Editor.prototype.update = function() {
+    var deltaTime = 1 / 60; // Assume 60 fps... bad example :P
+    this.time += deltaTime;
+    
+    // Refresh parameters:
+    this.updateEmitterFromUI(this.editEmitterIndex);
+    this.updateAppearanceFromUI(this.editEmitterIndex);
+
+    this.codeArea.textContent = 'var create' + this.parameters.get('effect name') + 'FX = ' + this.generateCode();
+
+    // Update:
+
+    this.particles.update(deltaTime);
+    var width = ctx.canvas.width;
+    var height = ctx.canvas.height;
+    if (this.positionMode === Editor.PositionMode.FOLLOW) {
+        var posX = width * 0.5 + Math.sin(this.time * 2.9) * width * 0.4;
+        var posY = height * 0.5 + Math.cos(this.time * 1.9) * height * 0.4;
+        this.effect.setCoords(posX, posY);
+    }
+    this.effect.update(deltaTime);
+
+    // Draw:
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    if (this.bg !== null) {
+        this.bg.draw(ctx, 0, 0);
+    }
+    this.particles.render(ctx);
+    
+    if (this.effect.dead) {
+        this._sinceDead += deltaTime;
+        if (this._sinceDead > 2) {
+            this.restartEffect();
+        }
+    }
+};
+
+Editor.prototype.updateEmitterFromUI = function(index) {
+    for (var key in particleParameters) {
+        if (this.emitters[index].options.hasOwnProperty(key)) {
+            this.emitters[index].options[key] = this.parameters.get(key);
+        }
+    }
+    this.emitters[index].options.rotationMode = GJS.Particle.RotationMode[this.parameters.get('rotationMode')];
+    this.timedEmitters[index].directionMode = GJS.ParticleTimedEmitter.DirectionMode[this.parameters.get('directionMode')];
+    this.timedEmitters[index].particleInterval = this.parameters.get('particleInterval');
+    this.timedEmitters[index].maxParticleCount = this.parameters.get('limit particle count') ? this.parameters.get('maxParticleCount') : -1;
+    if (this.timedEmitters[index].maxParticleCount < 0 && this.timedEmitters[index].particleInterval === 0) {
+        this.timedEmitters[index].particleInterval = particleParameters.particleInterval.step;
+    }
+    this.timedEmitters[index].lifetime = this.parameters.get('effect stops') ? this.parameters.get('effect lifetime') : -1;
+    this.timedEmitters[index].waitTime = this.parameters.get('effect wait time');
+};
+
+Editor.prototype.updateAppearanceFromUI = function(index) {
+    var optionSet = this.appearanceOptions[index];
+    optionSet.options.opacityFunc = eval(this.parameters.get('opacityFunc'));
+    optionSet.options.opacityFuncInverse = this.parameters.get('opacityFuncInverse');
+    optionSet.options.opacity = this.parameters.get('opacity');
+    optionSet.options.sizeFunc = eval(this.parameters.get('sizeFunc'));
+    optionSet.options.sizeFuncInverse = this.parameters.get('sizeFuncInverse');
+    optionSet.options.size = this.parameters.get('size');
+    optionSet.options.additive = this.parameters.get('additive');
+    var optionsCopy = {};
+    var appearanceSame = true;
+    for (var key in optionSet.options) {
+        if (optionSet.options.hasOwnProperty(key)) {
+            optionsCopy[key] = optionSet.options[key];
+            if (optionSet.loadedOptions[key] !== optionSet.options[key]) {
+                appearanceSame = false;
+            }
+        }
+    }
+    if (this.parameters.get('spriteURL') !== '' && optionSet.sprite && optionSet.sprite.loaded) {
+        optionsCopy.size /= optionSet.sprite.width;
+    }
+    var color = this.parameters.get('color');
+    var colorSprite = this.parameters.get('colorSprite');
+    if (appearanceSame &&
+        optionSet.color === color &&
+        optionSet.colorSprite === colorSprite &&
+        optionSet.loadedSpriteURL === this.parameters.get('spriteURL'))
+    {
+        return;
+    }
+    var updatedAppearance;
+    var appearanceOptionsString = '{';
+    for (var key in optionsCopy) {
+        if (optionsCopy.hasOwnProperty(key)) {
+            if (typeof optionsCopy[key] === 'function') {
+                appearanceOptionsString += key + ': ' + Editor.functionCode(optionsCopy[key]) + ', ';
+            } else if (key === 'size') {
+                appearanceOptionsString += key + ': ' + optionsCopy[key] + ' / drawScale, ';
+            } else {
+                appearanceOptionsString += key + ': ' + optionsCopy[key] + ', ';
+            }
+        }
+    }
+    // Remove last comma
+    appearanceOptionsString = appearanceOptionsString.substring(0, appearanceOptionsString.length - 2);
+    appearanceOptionsString += '}';
+    if (this.parameters.get('spriteURL') !== '') {
+        if (optionSet.sprite === null || optionSet.sprite.filename !== this.parameters.get('spriteURL')) {
+            optionSet.sprite = new GJS.Sprite(this.parameters.get('spriteURL'));
+        }
+        if (optionSet.sprite.loaded) {
+            if (colorSprite) {
+                var coloredSprite = new GJS.Sprite(optionSet.sprite.filename, GJS.Sprite.turnSolidColored(color));
+                updatedAppearance = GJS.Particle.spriteAppearance(coloredSprite, optionsCopy);
+                optionSet.codePrefix = 'var sprite' + index + ' = new GJS.Sprite("' + optionSet.sprite.filename + '", GJS.Sprite.turnSolidColored("' + color + '"));';
+                optionSet.code = 'GJS.Particle.spriteAppearance(sprite' + index + ', ' + appearanceOptionsString + ')';
+            } else {
+                updatedAppearance = GJS.Particle.spriteAppearance(optionSet.sprite, optionsCopy);
+                optionSet.codePrefix = 'var sprite' + index + ' = new GJS.Sprite("' + optionSet.sprite.filename + '");';
+                optionSet.code = 'GJS.Particle.spriteAppearance(sprite' + index + ', ' + appearanceOptionsString + ')';
+            }
+        }
+    } else {
+        var resolution = Math.max(1, Math.pow(2, Math.floor(Math.log(optionSet.options.size) / Math.LN2 + 0.2)));
+        updatedAppearance = GJS.Particle.prerenderedCircleAppearance(color, resolution, optionSet.options);
+        optionSet.code = 'GJS.Particle.prerenderedCircleAppearance("' + color + '", ' + resolution + ', ' + appearanceOptionsString + ')';
+    }
+
+    if (updatedAppearance !== undefined) {
+        this.emitters[index].options.appearance = updatedAppearance;
+        optionSet.colorSprite = colorSprite;
+        optionSet.color = color;
+        optionSet.loadedSpriteURL = this.parameters.get('spriteURL');
+        for (var key in optionSet.options) {
+            if (optionSet.options.hasOwnProperty(key)) {
+                optionSet.loadedOptions[key] = optionSet.options[key];
+            }
+        }
+    }
+};
+
+Editor.functionCode = function(func) {
+    var functions = Editor.easingFunctions();
+    for (var j = 0; j < functions.length; ++j) {
+        if (eval(functions[j]) === func) {
+            return functions[j];
+        }
+    }
+    return '';
+};
+
+Editor.easingFunctions = function() {
+    var functions = ['GJS.Particle.fastAppearSlowDisappear', 'GJS.Particle.constant'];
+    for (var key in TWEEN.Easing) {
+        if (TWEEN.Easing.hasOwnProperty(key)) {
+            if (TWEEN.Easing[key].hasOwnProperty('None')) {
+                functions.push('TWEEN.Easing.' + key + '.None');
+            }
+            if (TWEEN.Easing[key].hasOwnProperty('In')) {
+                functions.push('TWEEN.Easing.' + key + '.In');
+            }
+            if (TWEEN.Easing[key].hasOwnProperty('Out')) {
+                functions.push('TWEEN.Easing.' + key + '.Out');
+            }
+            if (TWEEN.Easing[key].hasOwnProperty('InOut')) {
+                functions.push('TWEEN.Easing.' + key + '.InOut');
+            }
+        }
+    }
+    return functions;
+};
+
+var frame = function() {
+    editor.update();
+    requestAnimationFrame(frame);
+};
+
+var particleParameters = {
+    'effect name': {initial: 'Smoke'},
+    'minLifetime': {initial: 1, min: 0.1, max: 20},
+    'maxLifetime': {initial: 3, min: 0.1, max: 20},
+    'directionMode': {options: ['RELATIVE', 'ABSOLUTE']},
+    'direction': {initial: 0, min: 0, max: 360, step: 10},
+    'directionSpread': {initial: 360, min: 0, max: 360, step: 10},
+    'minVelocity': {initial: 10, min: 0, max: 1000},
+    'maxVelocity': {initial: 80, min: 0, max: 1000},
+    'inertia': {initial: 1, min: 0.1, max: 10},
+    'weight': {initial: 100, min: -100, max: 100},
+    'positionSpread': {initial: 10, min: 0, max: 100},
+    'size': {initial: 5, min: 1, max: 200},
+    'sizeFunc': {options: Editor.easingFunctions()},
+    'sizeFuncInverse': {initial: false},
+    'opacity': {initial: 1, min: 0, max: 1},
+    'opacityFunc': {options: Editor.easingFunctions()},
+    'opacityFuncInverse': {initial: false},
+    'rotation': {initial: 360, min: 0, max: 360, step: 10},
+    'rotationMode': {options: ['STATIC', 'CURRENT_DIRECTION', 'INITIAL_DIRECTION', 'RANDOM']},
+    'particleInterval': {initial: 1/60, min: 0, max: 0.1, step: 1/240},
+    'limit particle count': {initial: false},
+    'maxParticleCount': {initial: 1, min: 1, max: 300, step: 1},
+    'effect stops': {initial: false},
+    'effect lifetime': {initial: 1, min: 0.1, max: 5, step: 0.1},
+    'effect wait time': {initial: 0, min: 0, max: 4, step: 0.05},
+    'additive': {initial: false},
+    'color': {initial: '#fff', color: true},
+    'colorSprite': {initial: false},
+    'spriteURL': {initial: ''}
+};
+
+var setPositionMode = function() {
+    if (document.getElementById('posMode').checked) {
+        editor.positionMode = Editor.PositionMode.FOLLOW;
+    } else {
+        editor.positionMode = Editor.PositionMode.STATIC;
+    }
+};
+
+var start = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 600;
+    canvas.addEventListener('click', function(e) {
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        editor.restartEffect();
+        editor.setEffectCoords(x, y);
+    });
+    ctx = canvas.getContext('2d');
+    document.getElementById('ui').appendChild(canvas);
+    var div = document.createElement('div');
+    div.id = 'controls';
+    div.innerHTML = [
+        '<input type="checkbox" onchange="setPositionMode()" id="posMode"></input><label for="posMode">Move effect</label>',
+        '<br>',
+        '<div id="emitterChoice">',
+        '</div>',
+        '<input type="button" onclick="editor.addEmitter()" value="Add emitter"></input>',
+        '<input type="button" onclick="editor.deleteEmitter()" value="Delete emitter"></input>',
+        '<br><br>',
+        '<input type="file" id="imageFile"></input>',
+        '<input type="button" onclick="loadSpriteFromFileInput()" value="Load sprite"></input>',
+        '<br><br>',
+        '<input type="file" id="bgFile"></input>',
+        '<input type="button" onclick="loadBGFromFileInput()" value="Load test background"></input>'
+        ].join('\n');
+    document.getElementById('ui').appendChild(div);
+    
+    editor = new Editor();
+    document.getElementById('ui').appendChild(editor.codeDiv);
+    var instructions = document.createElement('div');
+    instructions.id = 'instructions';
+    instructions.innerHTML = [
+        '<h2>Instructions</h2>',
+        '<p>A particle effect is made up of one or more emitters, which create particles either continuously or in bursts.',
+        'The parameters for the currently chosen emitter can be edited from the menu on the right, and the sprite image that',
+        'the emitter uses can be uploaded using the "Load sprite" function on the left.</p>',
+        '<p>When you are happy with an effect, copy and save the output code so it can be integrated with the game.</p>',
+        '<p>Note that using more particles or bigger sprite images can cost performance.</p>'
+    ].join('\n');
+    document.getElementById('ui').appendChild(instructions);
+    frame();
+};
+</script>
+</head>
+<body onload="start()">
+<h1>Gameutils.js Particle Effect Editor</h1>
+<div id="ui">
+</div>
+</body>
+</html>

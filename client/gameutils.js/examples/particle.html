@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>Gameutils.js: Using GJS.ParticleEngine</title>
+<link rel="stylesheet" type="text/css" href="assets/default.css">
+<script src="../src/gjs/sprite.js"></script><!-- required for GJS.Particle.prerenderedCircleAppearance -->
+<script src="../src/gjs/particle.js"></script>
+<script>
+'use strict';
+
+var ctx;
+var tester;
+
+var Tester = function() {
+    this.time = 0;
+    this.particles = new GJS.ParticleEngine({gravityY: 100});
+    this.emitter = new GJS.ParticleEmitter({
+        minVelocity: 10,
+        maxVelocity: 80,
+        positionSpread: 10,
+        appearance: GJS.Particle.prerenderedCircleAppearance('#4fd', 8, {})
+    });
+};
+
+Tester.prototype.update = function() {
+    var deltaTime = 1 / 60; // Assume 60 fps... bad example :P
+    this.time += deltaTime;
+
+    // Update:
+
+    this.particles.update(deltaTime);
+    var width = ctx.canvas.width;
+    var height = ctx.canvas.height;
+    var posX = width * 0.5 + Math.sin(this.time * 2.9) * width * 0.4;
+    var posY = height * 0.5 + Math.cos(this.time * 1.9) * height * 0.4;
+    for (var i = 0; i < 5; ++i) {
+        this.particles.addParticle(this.emitter.emitParticle({x: posX, y: posY}));
+    }
+
+    // Draw:
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    this.particles.render(ctx);
+};
+
+var frame = function() {
+    tester.update();
+    requestAnimationFrame(frame);
+};
+
+var start = function() {
+    tester = new Tester();
+    var canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 600;
+    ctx = canvas.getContext('2d');
+    document.body.appendChild(canvas);
+    frame();
+};
+</script>
+</head>
+<body onload="start()">
+<h2>Using the GJS.ParticleEngine</h2>
+<p>Compatibility: Chrome 41, Firefox 36, IE 11.</p>
+</body>
+</html>
