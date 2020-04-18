@@ -9,6 +9,7 @@ class GameList {
   // createGame should be a function for initializing a game state for an array of players.
   startGame(createGame, players) {
     const game = createGame(players);
+    console.log('Game Created:', game.state.id);
     this.allOngoingGames.push(game);
     for (const player of players) {
       // TODO: Do something sensible if the player is already in another game. Maybe support players leaving a game?
