@@ -15,9 +15,7 @@ class Board {
     this.ctx = ctx;
     this.domino_base = new Sprite('domino_base.png');
 
-    this.domino_t_gold = new Sprite('domino_base.png');
-    this.domino_bl_gold = new Sprite('domino_bottom_left-red.png');
-    this.domino_br_gold = new Sprite('domino_bottom_right-red.png');
+    this.domino_t_gold = new Sprite('domino_top-gold.png');
     this.domino_t_red = new Sprite('domino_top-red.png');
     this.domino_bl_red = new Sprite('domino_bottom_left-red.png');
     this.domino_br_red = new Sprite('domino_bottom_right-red.png');
@@ -29,8 +27,8 @@ class Board {
     this.domino_br_blue = new Sprite('domino_bottom_right-blue.png');
 
     this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_green, this.domino_t_blue];
-    this.domino_bottom_lefts = [this.domino_bl_gold, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
-    this.domino_bottom_rights = [this.domino_br_gold, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
+    this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
+    this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
   }
 
   drawGrid(state) {
