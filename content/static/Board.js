@@ -32,9 +32,9 @@ class Board {
     
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
-    layout.board.offset.x = layout.domino.width / 2;
-    layout.deck.offset.x = layout.domino.width / 2;
-    layout.deck.offset.y = layout.domino.height * 7.5;
+    layout.board.offset.x = ctx.canvas.width / 2 - layout.domino.width * 3;
+    layout.deck.offset.x = ctx.canvas.width / 2 - (layout.domino.width + layout.deck.padding.x) * 3.5;
+    layout.deck.offset.y = layout.domino.height * 4;
     layout.dragged.offset.x = -layout.domino.width / 2;
     layout.dragged.offset.y = -layout.domino.height / 2;
     
