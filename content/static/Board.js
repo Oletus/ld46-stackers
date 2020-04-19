@@ -37,14 +37,10 @@ class Board {
     console.log("Drawing board grid...");
     var grid = state.board;
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    let row_pos = 0;
-    for (var row of grid) {
-      row_pos += 1;
-      let slot_pos = 0;
-      for (var slot of row) {
-        slot_pos += 1;
-        let x = (grid.length-row_pos)*(this.domino_base.img.width/2) + (slot_pos*this.domino_base.img.width);
-        let y = (row_pos+1)*this.domino_base.img.height;
+    for (var row = 0; row < grid.length; ++row) {
+      for (var slotI = 0; slotI < grid[row].length; ++slotI) {
+        let x = (grid.length - row) * (this.domino_base.img.width / 2) + (slotI * this.domino_base.img.width);
+        let y = (row + 1) * this.domino_base.img.height;
         this.ctx.strokeRect(x, y, this.domino_base.img.width, this.domino_base.img.height);
       }
     }
@@ -54,21 +50,29 @@ class Board {
     console.log("Drawing board...");
     let row_pos = 0;
     var grid = state.board;
-    for (var row of grid) {
-      row_pos += 1;
-      let slot_pos = 0;
-      for (var slot of row) {
-        slot_pos += 1;
-        if (slot) {
-          var x = (grid.length-row_pos)*(this.domino_base.img.width/2) + (slot_pos*this.domino_base.img.width);
-          var y = (row_pos+1)*this.domino_base.img.height;
-          this.domino_base.draw(this.ctx, x, y);
-          var domino = state.dominos[slot];
-          console.log(domino);
-          this.domino_tops[domino.primary].draw(this.ctx, x, y);
-          this.domino_bottom_lefts[domino.left].draw(this.ctx, x, y);
-          this.domino_bottom_rights[domino.right].draw(this.ctx, x, y);
-        }
+    for (var row = 0; row < grid.length; ++row) {
+      for (var slotI = 0; slotI < grid[row].length; ++slotI) {
+        var slot = grid[row][slotI]
+        if (slot === undefined)
+          continue;
+
+        if (slot === 0)
+          continue;
+
+        var domino = grid[row][slotI]
+        if (domino === 0)
+          continue;
+
+        var domino = state.dominos[domino]
+        if (domino === undefined)
+          continue;
+
+        var x = (grid.length - row) * (this.domino_base.img.width / 2) + (slotI * this.domino_base.img.width);
+        var y = (row + 1) * this.domino_base.img.height;
+        this.domino_base.draw(this.ctx, x, y);
+        this.domino_tops[slot.primary].draw(this.ctx, x, y);
+        this.domino_bottom_lefts[slot.left].draw(this.ctx, x, y);
+        this.domino_bottom_rights[slot.right].draw(this.ctx, x, y);
       }
     }
   }
