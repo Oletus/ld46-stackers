@@ -7,7 +7,7 @@ const DECK_DOMINOS_WIDTH = 8
 
 const layout = {
   board: {offset: {x: 0, y: 0}},
-  deck: {offset: {x: 0, y: 0}, padding: {x: 10, y: 4}},
+  deck: {offset: {x: 0, y: 0}, padding: {x: 4, y: 4}},
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
 }
@@ -42,8 +42,8 @@ class Board {
     
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
-    layout.board.offset.x = ctx.canvas.width / 2 - layout.domino.width * 3;
-    layout.deck.offset.x = ctx.canvas.width / 2 - (layout.domino.width + layout.deck.padding.x) * 3.5;
+    layout.board.offset.x = ctx.canvas.width / 2 - layout.domino.width * 3.5;
+    layout.deck.offset.x = ctx.canvas.width / 2 - (layout.domino.width + layout.deck.padding.x) * 4;
     layout.deck.offset.y = layout.domino.height * 4;
     layout.dragged.offset.x = -layout.domino.width / 2;
     layout.dragged.offset.y = -layout.domino.height / 2;
