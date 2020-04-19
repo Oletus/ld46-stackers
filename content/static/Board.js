@@ -34,7 +34,6 @@ class Board {
   }
 
   drawGrid(state) {
-    console.log("Drawing board grid...");
     var grid = state.board;
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     for (var row = 0; row < grid.length; ++row) {
@@ -47,7 +46,6 @@ class Board {
   }
 
   drawPieces(state) {
-    console.log("Drawing board...");
     let row_pos = 0;
     var grid = state.board;
     for (var row = 0; row < grid.length; ++row) {
