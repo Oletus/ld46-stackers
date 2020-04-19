@@ -8,7 +8,7 @@ class Domino {
 }
 
 const COLOR_COUNT = 5;
-const START_DECK_SIZE = 15; //not including gold piece
+const START_DECK_SIZE = 16; //not including gold piece
 
 const generateRandomDominoColor = () => {
   //0 is gold
@@ -27,20 +27,6 @@ class GameState {
     // board stores ids of dominos; dominos are looked up from state.dominos dictionary
     this.state.board = [[0,0], [0,0,0], [0,0,0,0], [0,0,0,0,0], [0,0,0,0,0,0]]
 
-    // we generate the final pair of dominos and guarantee a shared color
-    var shared_color = generateRandomDominoColor();
-    var gold1 = new Domino(this.nextDominoId++, 0, shared_color, generateRandomDominoColor());
-    var gold2 = new Domino(this.nextDominoId++, 0, generateRandomDominoColor(), shared_color);
-    this.registerDomino(gold1);
-    this.registerDomino(gold2);
-    
-    // half the time, swap, so the players don't know which side of the domino they have is shared
-    if (Math.random() > 0.5)
-      [gold1, gold2] = [gold2, gold1];
- 
-    // decks store ids of dominos; dominos are looked up from state.dominos dictionary
-    this.state.decks[0].push(gold1.id);
-    this.state.decks[1].push(gold2.id);
     var i;
     for (i = 0; i < START_DECK_SIZE; ++i) {
       this.state.decks[0].push(this.generateRandomDomino().id);
@@ -105,15 +91,6 @@ class GameState {
       return false;
 
     const domino = this.state.dominos[pieceId];
-    
-    // gold pieces must be on top
-    if (domino.primary === 0 && slotCoord.y !== 0) {
-        return false;
-    }
-    // only gold pieces can be on top
-    if (domino.primary !== 0 && slotCoord.y === 0) {
-        return false;
-    }
 
     // require support of the proper colors
     if (this.state.board.length > slotCoord.y + 1) {
