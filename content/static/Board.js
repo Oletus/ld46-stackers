@@ -233,6 +233,11 @@ class Board {
   }
 
   tryPickupDomino(dominoId) {
+    console.log(this.localPlayerId);
+    console.log(this.lastState.turn);
+    if (this.localPlayerId != this.lastState.turn) {
+      return;
+    }
     if (this.dragged_domino === dominoId) {
       this.dragged_domino = 0
       return;
