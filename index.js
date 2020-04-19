@@ -185,7 +185,7 @@ app.post('/place_piece', (req, res) => {
     else
       sendContent(req, res, "Failed to place piece there");
 
-    console.log('Player piece placement processed:', game.id, req.body)
+    console.log('Player piece placement processed:', game.state.id, req.body)
     return;
   } catch(err) {
     sendContent(req, res, 'Request failed');
