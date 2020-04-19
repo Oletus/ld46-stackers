@@ -123,8 +123,12 @@ const start = () => {
   ctx = canvas.getContext('2d');
   document.body.appendChild(canvas);
   board = new Board(ctx);
-  pollState(true);
 
+  canvas.addEventListener('mousemove', e => {
+    board.onMouseMove({x: e.offsetX, y: e.offsetY});
+  });
+
+  pollState(true);
 }
 
 start();
