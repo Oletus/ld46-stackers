@@ -12,7 +12,7 @@ const START_DECK_SIZE = 15;
 
 const generateRandomDominoColor = () => {
   //0 is gold
-  return 1 + Math.floor(Math.random() * COLOR_COUNT - 0.01);
+  return 1 + Math.floor(Math.max(0, Math.random() * COLOR_COUNT - 0.0001));
 }
 
 class GameState {
