@@ -79,6 +79,7 @@ class GameState {
     if (!this.replacePiece(playerIndex, pieceId))
       return false;
 
+    this.state.turn = (playerIndex + 1) % 2;
     return true;
   }
   
