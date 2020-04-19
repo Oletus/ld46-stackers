@@ -34,6 +34,10 @@ class Board {
     layout.board.offset.x = layout.domino.width / 2;
     layout.deck.offset.x = layout.domino.width / 2;
     layout.deck.offset.y = layout.domino.height * 7.5;
+    
+    this.mousePos = {x:0, y:0};
+    
+    this.dragged_domino = 0;
   }
 
   drawGrid(state) {
@@ -87,6 +91,9 @@ class Board {
       var domino = deck[slotI];
       if (domino === 0)
         continue;
+      
+      if (domino === this.dragged_domino)
+        continue;
 
       var domino = state.dominos[domino];
       if (domino === undefined)
@@ -101,9 +108,26 @@ class Board {
     }
   }
 
+  drawHeldDomino(state, mousePos) {
+    if (this.dragged_domino) {
+      var domino = state.dominos[this.dragged_domino];
+      if (domino === undefined)
+        return;
+
+      var x = mousePos.x;
+      var y = mousePos.y;
+      this.drawDomino(domino, x, y);
+    }
+  }
+
   onStateChange(stateJSON, playerId) {
     this.lastState = JSON.parse(stateJSON);
     this.localPlayerId = playerId;
+    this.redraw();
+  }
+
+  onMouseMove(mousePos) {
+    this.mousePos = mousePos;
     this.redraw();
   }
 
@@ -114,6 +138,8 @@ class Board {
     this.drawGrid(this.lastState);
     this.drawPieces(this.lastState);
     this.drawDeck(this.lastState, this.localPlayerId);
+
+    this.drawHeldDomino(this.lastState, this.mousePos);
   }
 }
 
