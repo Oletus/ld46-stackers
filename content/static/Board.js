@@ -105,7 +105,9 @@ class Board {
     }
     this.ctx.stroke();
 
-    this.relayoutBounds();
+    if (layout.discard.bounds === undefined)
+      this.relayoutBounds();
+
     this.ctx.fillRect(layout.discard.bounds.left, layout.discard.bounds.top , layout.discard.bounds.right - layout.discard.bounds.left, layout.discard.bounds.bottom - layout.discard.bounds.top);
   }
   
