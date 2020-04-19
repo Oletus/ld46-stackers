@@ -203,13 +203,24 @@ class Board {
     mouseX = mouseX - layout.board.offset.x;
     mouseY = mouseY - layout.board.offset.y;
 
-    var pixelX = layout.domino.width;
-    var pixelY = layout.domino.height;
+    var pixelHalfX = layout.domino.width / 2;
+    var pixelHalfY = layout.domino.height / 2;
+
+    var mouseX = this.mousePos.x - layout.board.offset.x - pixelHalfX;
+    var mouseY = this.mousePos.y - layout.board.offset.y;
     
-    var posY = Math.floor(mouseY / pixelY);
-    
-    var rowAlignedX = mouseX - (this.lastState.board.length - posY) * (pixelX / 2);
-    var posX = Math.floor(rowAlignedX / pixelX);
+    var posY = Math.round(mouseY / pixelHalfY);
+    var posX = Math.round(mouseX / pixelHalfX);
+
+    if (posY % 2 == 1 && posX % 2 == 1) {
+      posY = posY * pixelHalfY / layout.domino.height;
+      posX = posX * pixelHalfX / layout.domino.width;
+    } else {
+      posY = Math.round(mouseY / layout.domino.height);
+      posX = Math.round(mouseX / layout.domino.width);
+    }
+    posY = posY * 2 - 1;
+    posX = posX - (this.lastState.board.length - posY) / 2
 
     if (posX < 0)
       return;
