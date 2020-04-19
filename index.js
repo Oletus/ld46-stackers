@@ -199,7 +199,12 @@ app.post('/startGame', (req, res) => {
     sendContent(req, res, 'Need two players present to start the game!');
     return;
   }
+  if (gameSession.appState !== null) {
+    sendContent(req, res, 'App already started.');
+    return;
+  }
   gameSession.startApp((users) => new GameState(users));
+  sendContent(req, res);
 });
 
 app.post('/place_piece', (req, res) => {
