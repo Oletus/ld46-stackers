@@ -1,0 +1,124 @@
+<html>
+<head>
+<title>Gameutils.js: Using GJS.CanvasUI and GJS.CanvasUIElement</title>
+<link rel="stylesheet" type="text/css" href="assets/default.css">
+<script src="../src/gjs/util2d.js"></script>
+<script src="../src/gjs/canvasui.js"></script>
+<script>
+'use strict';
+
+var ctx;
+var tester;
+
+GJS.CanvasUIElement.defaultFont = 'monospace';
+
+var Tester = function(canvas) {
+    this.time = 0;
+    this.ui = new GJS.CanvasUI();
+    
+    var getCanvasPositionFromEvent = function(event) {
+        return {x: event.clientX - canvas.getBoundingClientRect().left,
+                y: event.clientY - canvas.getBoundingClientRect().top};
+    };
+    
+    var ui = this.ui;
+    canvas.addEventListener('mousemove', function(event) {
+        ui.canvasMove({ index: 0, currentPosition: getCanvasPositionFromEvent(event) });
+    });
+    canvas.addEventListener('mousedown', function(event) {
+        ui.canvasPress({ index: 0, currentPosition: getCanvasPositionFromEvent(event) });
+    });
+    canvas.addEventListener('mouseup', function(event) {
+        ui.canvasRelease({ index: 0 }, false);
+    });
+    canvas.addEventListener('touchmove', function(event) {
+        ui.canvasMove({ index: 1, currentPosition: getCanvasPositionFromEvent(event) });
+        event.preventDefault();
+    });
+    canvas.addEventListener('touchstart', function(event) {
+        ui.canvasPress({ index: 1, currentPosition: getCanvasPositionFromEvent(event) });
+        event.preventDefault();
+    });
+    canvas.addEventListener('touchend', function(event) {
+        ui.canvasRelease({ index: 1 }, true);
+        event.preventDefault();
+    });
+
+    var button = new GJS.CanvasUIElement({
+        centerX: 100,
+        centerY: 100,
+        width: 120,
+        height: 70,
+        label: 'Button',
+        clickCallback: function() { console.log('clicked!') },
+        dragTargetCallback: function(draggedObject) {
+            console.log('dragged to button: ' + draggedObject);
+        }
+    });
+    this.ui.addElement(button);
+
+    var label = new GJS.CanvasUIElement({
+        centerX: 200,
+        centerY: 200,
+        label: 'Label'
+    });
+    this.ui.addElement(label);
+    
+    var customButton = new GJS.CanvasUIElement({
+        centerX: 300,
+        centerY: 100,
+        width: 120,
+        height: 70,
+        label: 'Custom button',
+        clickCallback: function() { console.log('custom clicked!') },
+        renderFunc: function(ctx, button, cursorOver, pressedExtent, label) {
+            ctx.beginPath();
+            ctx.arc(button.visualX(), button.visualY(), 50, 0, Math.PI * 2);
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = '#fa4';
+            ctx.fill();
+            ctx.lineWidth = 10 * (1 + pressedExtent);
+            ctx.strokeStyle = 'white';
+            ctx.stroke();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'black';
+            ctx.fillText('DRAG ME', button.visualX(), button.visualY() + 6);
+        },
+        draggable: true,
+        draggedObjectFunc: function() { return 'dragged object X'; }
+    });
+    this.ui.addElement(customButton);
+};
+
+Tester.prototype.update = function() {
+    var deltaTime = 1 / 60; // Assume 60 fps... bad example :P
+    this.time += deltaTime;
+    this.ui.update(deltaTime);
+
+    ctx.fillStyle = '#579';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    this.ui.render(ctx);
+};
+
+var frame = function() {
+    tester.update();
+    requestAnimationFrame(frame);
+};
+
+var start = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    tester = new Tester(canvas);
+    ctx = canvas.getContext('2d');
+    document.body.appendChild(canvas);
+    frame();
+};
+</script>
+</head>
+<body onload="start()">
+<h2>Using GJS.CanvasUI and GJS.CanvasUIElement</h2>
+<p>Compatibility: Chrome 41, Firefox 36, IE 11.</p>
+</body>
+</html>

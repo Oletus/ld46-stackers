@@ -36,10 +36,14 @@ const formToJSON = elements => [].reduce.call(elements, (data, element) => {
 <script type="module">
 
 import { PlayerState } from './common/PlayerState.js';
+import { Board } from "./Board.js";
 
 let contentDiv;
+let canvas;
+let ctx;
 
 let playerState = PlayerState.UNREGISTERED;
+let board;
 
 const delayBetweenRefresh = 2000;
 
@@ -60,6 +64,7 @@ const setStateFromResponse = (responseText, resetClient) => {
     console.log("Received game state from server: " + response.gameState);
     playerState = PlayerState.IN_GAME;
     // TODO: Should update the game on the client based on the game state!
+    board.draw(response.gameState);
   } else if (response.hasOwnProperty("playerRegistered") && response.playerRegistered) {
     playerState = PlayerState.REGISTERED;
   }
@@ -112,7 +117,14 @@ window.post = (url, jsonData, resetClient) => {
 
 const start = () => {
   contentDiv = document.getElementById("content");
+  canvas = document.createElement('canvas');
+  canvas.width = 500;
+  canvas.height = 300;
+  ctx = canvas.getContext('2d');
+  document.body.appendChild(canvas);
+  board = new Board(ctx);
   pollState(true);
+
 }
 
 start();
