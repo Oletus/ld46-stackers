@@ -128,7 +128,9 @@ class GameState {
         return false;
     }
 
-    this.replacePiece(playerIndex, pieceId);
+    if (!this.replacePiece(playerIndex, pieceId))
+      return false;
+
     this.state.board[slotCoord.y][slotCoord.x] = pieceId
     this.state.turn = (playerIndex + 1) % 2;
     return true;
