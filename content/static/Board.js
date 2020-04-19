@@ -46,22 +46,21 @@ class Board {
   }
 
   drawPieces(state) {
-    let row_pos = 0;
     var grid = state.board;
     for (var row = 0; row < grid.length; ++row) {
       for (var slotI = 0; slotI < grid[row].length; ++slotI) {
-        var slot = grid[row][slotI]
+        var slot = grid[row][slotI];
         if (slot === undefined)
           continue;
 
         if (slot === 0)
           continue;
 
-        var domino = grid[row][slotI]
+        var domino = grid[row][slotI];
         if (domino === 0)
           continue;
 
-        var domino = state.dominos[domino]
+        var domino = state.dominos[domino];
         if (domino === undefined)
           continue;
 
