@@ -15,7 +15,7 @@ class Board {
     this.ctx = ctx;
     this.domino_base = new Sprite('domino_base.png');
 
-    this.domino_t_gold = new Sprite('domino_top-gold.png');
+    this.domino_t_gold = new Sprite('domino_top-crown.png');
     this.domino_t_red = new Sprite('domino_top-red.png');
     this.domino_bl_red = new Sprite('domino_bottom_left-red.png');
     this.domino_br_red = new Sprite('domino_bottom_right-red.png');
