@@ -71,7 +71,7 @@ class Board {
 
         var x = (grid.length - row) * (this.domino_base.img.width / 2) + (slotI * this.domino_base.img.width);
         var y = (row + 1) * this.domino_base.img.height;
-        drawDomino(domino, x, y);
+        this.drawDomino(domino, x, y);
       }
     }
   }
@@ -93,7 +93,7 @@ class Board {
       
       var x = x * (this.domino_base.img.width + 10) + deckOffset.x;
       var y = y * (this.domino_base.img.height + 4) + deckOffset.y;
-      drawDomino(domino, x, y);
+      this.drawDomino(domino, x, y);
     }
   }
 
