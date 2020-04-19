@@ -118,16 +118,33 @@ class GameState {
     // require support of the proper colors
     if (this.state.board.length > slotCoord.y + 1) {
       var left = this.state.board[slotCoord.y + 1][slotCoord.x]
-      if (left === 0)
-        return false;
+      if (left !== 0) {
+        left = this.state.dominos[left];
+        if (domino.left !== left.primary)
+          return false;
+      }
       var right = this.state.board[slotCoord.y + 1][slotCoord.x + 1]
-      if (right === 0)
-        return false;
-
-      left = this.state.dominos[left];
-      right = this.state.dominos[right];
-      if (domino.left !== left.primary || domino.right !== right.primary)
-        return false;
+      if (right !== 0) {
+        right = this.state.dominos[right];
+        if (domino.right !== right.primary)
+          return false;
+      }
+    }
+    if (slotCoord.y > 1 && slotCoord.x > 0) {
+      var upLeft = this.state.board[slotCoord.y - 1][slotCoord.x - 1]
+      if (upLeft !== 0) {
+        upLeft = this.state.dominos[upLeft];
+        if (domino.primary !== upLeft.right)
+          return false;
+      }
+    }
+    if (slotCoord.y > 1) {
+      var upRight = this.state.board[slotCoord.y - 1][slotCoord.x]
+      if (upRight !== 0) {
+        upRight = this.state.dominos[upRight];
+        if (domino.primary !== upRight.left)
+          return false;
+      }
     }
 
     if (!this.replacePiece(playerIndex, pieceId))
