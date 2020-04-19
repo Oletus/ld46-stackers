@@ -74,9 +74,9 @@ class Board {
     }
   }
 
-  drawDeck(state) {
+  drawDeck(state, playerId) {
     var deckOffset = {x: this.domino_base.img.width / 2, y: this.domino_base.img.height * 7.5}
-    var deck = state.decks[0];
+    var deck = state.decks[playerId];
     for (var slotI = 0; slotI < deck.length; ++slotI) {
       var domino = deck[slotI];
       if (domino === 0)
@@ -99,11 +99,11 @@ class Board {
     }
   }
 
-  draw(stateJSON) {
+  draw(stateJSON, playerId) {
     var state = JSON.parse(stateJSON);
     this.drawGrid(state);
     this.drawPieces(state);
-    this.drawDeck(state);
+    this.drawDeck(state, playerId);
   }
 }
 

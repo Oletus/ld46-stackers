@@ -107,6 +107,7 @@ const sendContent = (req, res, notification) => {
   };
   const gameState = gameList.getCurrentGameForPlayer(player);
   if (gameState !== null) {
+    responseJson.playerId = gameState.getPlayerId(player.name);
     responseJson.gameState = gameState.toJSON();
   }
   if (notification !== undefined) {
