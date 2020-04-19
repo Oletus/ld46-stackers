@@ -37,11 +37,17 @@ class Board {
     this.domino_t_blue = new Sprite('domino_top-blue.png');
     this.domino_bl_blue = new Sprite('domino_bottom_left-blue.png');
     this.domino_br_blue = new Sprite('domino_bottom_right-blue.png');
+    this.domino_t_yellow = new Sprite('domino_top-yellow.png');
+    this.domino_bl_yellow = new Sprite('domino_bottom_left-yellow.png');
+    this.domino_br_yellow = new Sprite('domino_bottom_right-yellow.png');
+    this.domino_t_purple = new Sprite('domino_top-purple.png');
+    this.domino_bl_purple = new Sprite('domino_bottom_left-purple.png');
+    this.domino_br_purple = new Sprite('domino_bottom_right-purple.png');
 
-    this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_green, this.domino_t_blue];
-    this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
-    this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
-    
+    this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_green, this.domino_t_blue, this.domino_t_yellow, this.domino_t_purple];
+    this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue, this.domino_bl_yellow, this.domino_bl_purple];
+    this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue, this.domino_br_yellow, this.domino_br_purple];
+
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
     layout.board.offset.x = (ctx.canvas.width - layout.discard.width - layout.discard.margin.left) / 2 - layout.domino.width * 3.5;
