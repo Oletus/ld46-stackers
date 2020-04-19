@@ -123,7 +123,7 @@ class GameState {
           return false;
       }
     }
-    if (slotCoord.y > 1 && slotCoord.x > 0) {
+    if (slotCoord.y > 0 && slotCoord.x > 0) {
       var upLeft = this.state.board[slotCoord.y - 1][slotCoord.x - 1]
       if (upLeft !== 0) {
         upLeft = this.state.dominos[upLeft];
@@ -131,7 +131,7 @@ class GameState {
           return false;
       }
     }
-    if (slotCoord.y > 1) {
+    if (slotCoord.y > 0 && slotCoord.x z < this.state.board[slotCoord.y - 1].length) {
       var upRight = this.state.board[slotCoord.y - 1][slotCoord.x]
       if (upRight !== 0) {
         upRight = this.state.dominos[upRight];
