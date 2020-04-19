@@ -20,6 +20,7 @@ const isInside = (bounds, x, y) => {
   return y > bounds.top && y < bounds.bottom && x > bounds.left && x < bounds.right;
 }
 
+var bgm
 
 class Board {
   constructor(ctx) {
@@ -54,6 +55,8 @@ class Board {
     this.dragged_domino = 0;
 
     this.gameContainer = new GameState("Me", "Them");
+
+    bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay:true,loop:true,volume:0.5});
   }
   
   relayoutBounds() {
@@ -85,6 +88,7 @@ class Board {
   }
 
   drawGrid(state) {
+    bgm.play();
     var grid = state.board;
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.beginPath();
