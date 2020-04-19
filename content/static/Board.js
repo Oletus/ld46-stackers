@@ -11,6 +11,7 @@ const layout = {
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
   discard: {}
+  turnIndicator: {offset: {x: 100, y: 50}},
 }
 
 const isInside = (bounds, x, y) => {
@@ -104,6 +105,9 @@ class Board {
       }
     }
     this.ctx.stroke();
+
+    this.ctx.font = "30px Arial";
+    this.ctx.fillText(this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
 
     if (layout.discard.bounds === undefined)
       this.relayoutBounds();
