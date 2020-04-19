@@ -10,7 +10,7 @@ const layout = {
   deck: {offset: {x: 0, y: 0}, padding: {x: 4, y: 4}},
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
-  discard: {}
+  discard: {width: 128, height: 128, margin: {left: 20}},
   turnIndicator: {offset: {x: 100, y: 50}},
 }
 
@@ -44,9 +44,9 @@ class Board {
     
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
-    layout.board.offset.x = ctx.canvas.width / 2 - layout.domino.width * 3.5;
+    layout.board.offset.x = (ctx.canvas.width - layout.discard.width - layout.discard.margin.left) / 2 - layout.domino.width * 3.5;
     layout.deck.offset.x = ctx.canvas.width / 2 - (layout.domino.width + layout.deck.padding.x) * 4;
-    layout.deck.offset.y = layout.domino.height * 4;
+    layout.deck.offset.y = layout.domino.height * 3;
     layout.dragged.offset.x = -layout.domino.width / 2;
     layout.dragged.offset.y = -layout.domino.height / 2;
     
@@ -73,9 +73,9 @@ class Board {
 
     layout.discard.bounds = {}
     layout.discard.bounds.top = layout.board.bounds.bottom - 2 * layout.domino.height;
-    layout.discard.bounds.bottom = layout.discard.bounds.top + 2 * layout.domino.height;
-    layout.discard.bounds.left = layout.board.bounds.right + layout.domino.width;
-    layout.discard.bounds.right = layout.discard.bounds.left + 2 * layout.domino.width;
+    layout.discard.bounds.bottom = layout.discard.bounds.top + layout.discard.height;
+    layout.discard.bounds.left = layout.board.bounds.right + layout.discard.margin.left;
+    layout.discard.bounds.right = layout.discard.bounds.left + layout.discard.width;
 
     layout.deck.bounds = {}
     layout.deck.bounds.top = layout.deck.offset.y;
