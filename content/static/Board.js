@@ -184,7 +184,7 @@ class Board {
     if (layout.board.bounds === undefined || layout.deck.bounds === undefined)
       this.relayoutBounds();
     
-    if (isInside(layout.board.bounds, x, y)) {
+    if (this.dragged_domino && isInside(layout.board.bounds, x, y)) {
       this.tryClickBoard(x, y);
     } else if (isInside(layout.deck.bounds, x, y)) {
       this.tryClickDeck(x, y);
