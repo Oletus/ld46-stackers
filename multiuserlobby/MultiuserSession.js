@@ -22,7 +22,7 @@ class MultiuserSession {
     if (this.appState !== null && !this.options.canJoinAfterAppStart) {
       return false;
     }
-    if (this.users.length >= this.options.userCountLimit) {
+    if (this.options.userCountLimit >= 0 && this.users.length >= this.options.userCountLimit) {
       return false;
     }
     this.users.push(user);

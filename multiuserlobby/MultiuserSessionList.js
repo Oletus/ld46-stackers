@@ -70,6 +70,7 @@ class MultiuserSessionList {
       this.ongoingSessionsByUserId[user.id] = session;
       return true;
     }
+    return false;
   }
 
   tryLeaveSession(user) {
