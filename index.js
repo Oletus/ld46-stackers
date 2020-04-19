@@ -189,7 +189,7 @@ app.post('/place_piece', (req, res) => {
 });
 
 app.post('/discard_piece', (req, res) => {
-  const player = getPlayer(req.session);
+  const player = gameList.getUser(req.session);
   if (player === null) {
     sendContent(req, res, 'You are not registered!');
     return;
@@ -199,11 +199,13 @@ app.post('/discard_piece', (req, res) => {
     sendContent(req, res, 'Request malformed');
     return;
   }
-  var game = gameList.getCurrentGameForPlayer(player);
-  if (game === undefined) {
+  var multiuserSession = gameList.getCurrentSessionForUser(player);
+  if (multiuserSession === undefined || multiuserSession.appState === null) {
     sendContent(req, res, 'You are not part of a game');
     return;
   }
+
+  const game = multiuserSession.appState;
 
   try {
     const pieceId = req.body.pieceId;
