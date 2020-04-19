@@ -71,21 +71,30 @@ class GameState {
     return playerIndex;
   }
   
-  replacePiece(playerIndex, pieceId) {
+  discardPiece(playerIndex, pieceId) {
     if (this.state.dominos[pieceId].primary == 0) {
       console.log("Cannot discard gold piece!");
       return false;
     }
+    if (!this.replacePiece(playerIndex, pieceId))
+      return false;
+
+    this.state.turn = (playerIndex + 1) % 2;
+    return true;
+  }
+  
+  replacePiece(playerIndex, pieceId) {
     var deck = this.state.decks[playerIndex];
     var newDeck = deck.filter(value => value != pieceId);
     if (newDeck.length == deck.length) {
       // piece wasn't in deck
       return false;
-    } else {
-      newDeck.push(this.generateRandomDomino().id);
-      this.state.decks[playerIndex] = newDeck;
-      return true;
     }
+
+    if (typeof this.players[0] === "object")
+      newDeck.push(this.generateRandomDomino().id);
+    this.state.decks[playerIndex] = newDeck;
+    return true;
   }
 
   placePiece(playerIndex, pieceId, slotCoord) {
@@ -121,7 +130,9 @@ class GameState {
         return false;
     }
 
-    this.replacePiece(playerIndex, pieceId);
+    if (!this.replacePiece(playerIndex, pieceId))
+      return false;
+
     this.state.board[slotCoord.y][slotCoord.x] = pieceId
     this.state.turn = (playerIndex + 1) % 2;
     return true;
