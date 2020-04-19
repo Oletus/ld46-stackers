@@ -165,8 +165,6 @@ class Board {
   }
 
   onMouseMove(mousePos) {
-    this.mousePos = mousePos;
-    this.redraw();
   }
 
   canvasPress(event) {
@@ -187,6 +185,8 @@ class Board {
   }
 
   canvasMove(event) {
+    this.mousePos = event.currentPosition;
+    this.redraw();
   }
   
   tryClickBoard(mouseX, mouseY) {
