@@ -66,8 +66,12 @@ class GameState {
     return domino
   }
   
-  placePiece(playerName, pieceId, slotCoord) {
-    const playerIndex = this.players[0].name == playerName ? 0 : 1;
+  getPlayerId(playerName) {
+    const playerIndex = this.players[0].name == playerName ? 0 : this.players[1].name == playerName ? 1 : -1;
+    return playerIndex;
+  }
+  
+  placePiece(playerIndex, pieceId, slotCoord) {
     if (playerIndex != this.state.turn)
       return false;
     

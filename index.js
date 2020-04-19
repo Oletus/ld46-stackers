@@ -179,7 +179,8 @@ app.post('/place_piece', (req, res) => {
     const pieceId = req.body.pieceId;
     const slot = {y: req.body.slotY, x: req.body.slotX};
 
-    var success = game.placePiece(player.name, pieceId, slot);
+    var playerId = game.getPlayerId(player.name);
+    var success = game.placePiece(playerId, pieceId, slot);
     if (success)
       sendContent(req, res);
     else
