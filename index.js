@@ -194,6 +194,40 @@ app.post('/place_piece', (req, res) => {
   }
 });
 
+app.post('/discard_piece', (req, res) => {
+  const player = getPlayer(req.session);
+  if (player === null) {
+    sendContent(req, res, 'You are not registered!');
+    return;
+  }
+  console.log('Player requested piece placement:', player.name, req.body)
+  if (req.body === undefined) {
+    sendContent(req, res, 'Request malformed');
+    return;
+  }
+  var game = gameList.getCurrentGameForPlayer(player);
+  if (game === undefined) {
+    sendContent(req, res, 'You are not part of a game');
+    return;
+  }
+
+  try {
+    const pieceId = req.body.pieceId;
+
+    var playerId = game.getPlayerId(player.name);
+    var success = game.replacePiece(playerId, pieceId);
+    if (success)
+      sendContent(req, res);
+    else
+      sendContent(req, res, "Failed to replace piece");
+
+    console.log('Player discarded piece:', game.state.id, req.body)
+    return;
+  } catch(err) {
+    sendContent(req, res, 'Request failed');
+  }
+});
+
 app.listen(config.port, (err) => {
   if (err) {
     return console.log('something bad happened', err)

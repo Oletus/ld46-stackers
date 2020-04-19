@@ -10,6 +10,7 @@ const layout = {
   deck: {offset: {x: 0, y: 0}, padding: {x: 10, y: 4}},
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
+  discard: {}
 }
 
 const isInside = (bounds, x, y) => {
@@ -69,6 +70,12 @@ class Board {
     layout.board.bounds.left = layout.board.offset.x + (layout.domino.width / 2); 
     layout.board.bounds.right = layout.board.bounds.left + (longest * layout.domino.width);
 
+    layout.discard.bounds = {}
+    layout.discard.bounds.top = layout.board.bounds.bottom - 2 * layout.domino.height;
+    layout.discard.bounds.bottom = layout.discard.bounds.top + 2 * layout.domino.height;
+    layout.discard.bounds.left = layout.board.bounds.right + layout.domino.width;
+    layout.discard.bounds.right = layout.discard.bounds.left + 2 * layout.domino.width;
+
     layout.deck.bounds = {}
     layout.deck.bounds.top = layout.deck.offset.y;
     layout.deck.bounds.bottom = layout.deck.bounds.top + Math.ceil(playerDeckSize / DECK_DOMINOS_WIDTH) * (layout.domino.height + layout.deck.padding.y);
@@ -87,6 +94,8 @@ class Board {
         this.ctx.strokeRect(x, y, layout.domino.width, layout.domino.height);
       }
     }
+    this.relayoutBounds();
+    this.ctx.fillRect(layout.discard.bounds.left, layout.discard.bounds.top , layout.discard.bounds.right - layout.discard.bounds.left, layout.discard.bounds.bottom - layout.discard.bounds.top);
   }
   
   drawDomino(domino, x, y) {
@@ -178,6 +187,8 @@ class Board {
       this.tryClickBoard(x, y);
     } else if (isInside(layout.deck.bounds, x, y)) {
       this.tryClickDeck(x, y);
+    } else if (isInside(layout.discard.bounds, x, y)) {
+      this.tryClickDiscard();
     }
   }
 
@@ -208,6 +219,27 @@ class Board {
     this.tryPlaceDomino(this.dragged_domino, gridPos)
   }
   
+  tryClickDiscard() {
+    if (this.dragged_domino == 0) {
+      return false;
+    }
+    var success = this.gameContainer.replacePiece(this.localPlayerId, this.dragged_domino);
+    console.log("Tried discarding domino ", this.dragged_domino, success);
+    if (success) {
+      fetch('/discard_piece', {
+        method: 'POST',
+        body: JSON.stringify({
+          pieceId: this.dragged_domino,
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8'
+        }
+      });
+      this.redraw();
+      this.dragged_domino = 0;
+    }
+  }
+
   tryClickDeck(mouseX, mouseY) {
     mouseX = mouseX - layout.deck.offset.x;
     mouseY = mouseY - layout.deck.offset.y;
@@ -233,8 +265,6 @@ class Board {
   }
 
   tryPickupDomino(dominoId) {
-    console.log(this.localPlayerId);
-    console.log(this.lastState.turn);
     if (this.localPlayerId != this.lastState.turn) {
       return;
     }
