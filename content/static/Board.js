@@ -251,6 +251,8 @@ class Board {
     if (this.dragged_domino == 0) {
       return false;
     }
+    
+    this.gameContainer.state = this.lastState
     var success = this.gameContainer.discardPiece(this.localPlayerId, this.dragged_domino);
     console.log("Tried discarding domino ", this.dragged_domino, success);
     if (success) {
