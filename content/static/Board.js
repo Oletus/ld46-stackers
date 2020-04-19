@@ -92,7 +92,7 @@ class Board {
           continue;
 
         var x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        var y = layout.board.offset.y + (row + 1) * layout.domino.height;
+        var y = layout.board.offset.y + (row + 1) * layout.domino.height / 2;
         this.drawDomino(domino, x, y);
       }
     }
