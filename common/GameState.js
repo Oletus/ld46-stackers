@@ -88,11 +88,12 @@ class GameState {
     if (newDeck.length == deck.length) {
       // piece wasn't in deck
       return false;
-    } else {
-      newDeck.push(this.generateRandomDomino().id);
-      this.state.decks[playerIndex] = newDeck;
-      return true;
     }
+
+    if (typeof this.players[0] === "object")
+      newDeck.push(this.generateRandomDomino().id);
+    this.state.decks[playerIndex] = newDeck;
+    return true;
   }
 
   placePiece(playerIndex, pieceId, slotCoord) {
