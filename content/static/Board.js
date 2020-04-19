@@ -7,7 +7,7 @@ const DECK_DOMINOS_WIDTH = 8
 
 const layout = {
   board: {offset: {x: 0, y: 0}},
-  deck: {offset: {x: 0, y: 0}, padding: {x: 10, y: 4}},
+  deck: {offset: {x: 0, y: 0}, padding: {x: 4, y: 4}},
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
   discard: {}
@@ -26,7 +26,7 @@ class Board {
     this.ctx = ctx;
     this.domino_base = new Sprite('domino_base.png');
 
-    this.domino_t_gold = new Sprite('domino_top-gold.png');
+    this.domino_t_gold = new Sprite('domino_top-crown.png');
     this.domino_t_red = new Sprite('domino_top-red.png');
     this.domino_bl_red = new Sprite('domino_bottom_left-red.png');
     this.domino_br_red = new Sprite('domino_bottom_right-red.png');
@@ -43,9 +43,9 @@ class Board {
     
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
-    layout.board.offset.x = layout.domino.width / 2;
-    layout.deck.offset.x = layout.domino.width / 2;
-    layout.deck.offset.y = layout.domino.height * 7.5;
+    layout.board.offset.x = ctx.canvas.width / 2 - layout.domino.width * 3.5;
+    layout.deck.offset.x = ctx.canvas.width / 2 - (layout.domino.width + layout.deck.padding.x) * 4;
+    layout.deck.offset.y = layout.domino.height * 4;
     layout.dragged.offset.x = -layout.domino.width / 2;
     layout.dragged.offset.y = -layout.domino.height / 2;
     
@@ -66,7 +66,7 @@ class Board {
 
     layout.board.bounds = {}
     layout.board.bounds.top = layout.board.offset.y,
-    layout.board.bounds.bottom = layout.board.bounds.top + rowCount * layout.domino.height;
+    layout.board.bounds.bottom = layout.board.bounds.top + (rowCount + 1) * layout.domino.height / 2;
     layout.board.bounds.left = layout.board.offset.x + (layout.domino.width / 2); 
     layout.board.bounds.right = layout.board.bounds.left + (longest * layout.domino.width);
 
@@ -87,13 +87,24 @@ class Board {
   drawGrid(state) {
     var grid = state.board;
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.beginPath();
     for (var row = 0; row < grid.length; ++row) {
       for (var slotI = 0; slotI < grid[row].length; ++slotI) {
-        let x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        let y = layout.board.offset.y + row * layout.domino.height;
-        this.ctx.strokeRect(x, y, layout.domino.width, layout.domino.height);
+        var x1 = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
+        var x2 = x1 + layout.domino.width / 2;
+        var x3 = x1 + layout.domino.width;
+        var y1 = layout.board.offset.y + row * layout.domino.height / 2;
+        var y2 = y1 + layout.domino.height / 2;
+        var y3 = y1 + layout.domino.height;
+        this.ctx.moveTo(x2, y1);
+        this.ctx.lineTo(x3, y2);
+        this.ctx.lineTo(x2, y3);
+        this.ctx.lineTo(x1, y2);
+        this.ctx.lineTo(x2, y1);
       }
     }
+    this.ctx.stroke();
+
     this.relayoutBounds();
     this.ctx.fillRect(layout.discard.bounds.left, layout.discard.bounds.top , layout.discard.bounds.right - layout.discard.bounds.left, layout.discard.bounds.bottom - layout.discard.bounds.top);
   }
@@ -125,7 +136,7 @@ class Board {
           continue;
 
         var x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        var y = layout.board.offset.y + row * layout.domino.height;
+        var y = layout.board.offset.y + row * layout.domino.height / 2;
         this.drawDomino(domino, x, y);
       }
     }
@@ -183,7 +194,7 @@ class Board {
     if (layout.board.bounds === undefined || layout.deck.bounds === undefined)
       this.relayoutBounds();
     
-    if (isInside(layout.board.bounds, x, y)) {
+    if (this.dragged_domino && isInside(layout.board.bounds, x, y)) {
       this.tryClickBoard(x, y);
     } else if (isInside(layout.deck.bounds, x, y)) {
       this.tryClickDeck(x, y);
@@ -204,13 +215,24 @@ class Board {
     mouseX = mouseX - layout.board.offset.x;
     mouseY = mouseY - layout.board.offset.y;
 
-    var pixelX = layout.domino.width;
-    var pixelY = layout.domino.height;
+    var pixelHalfX = layout.domino.width / 2;
+    var pixelHalfY = layout.domino.height / 2;
+
+    var mouseX = this.mousePos.x - layout.board.offset.x - pixelHalfX;
+    var mouseY = this.mousePos.y - layout.board.offset.y;
     
-    var posY = Math.floor(mouseY / pixelY);
-    
-    var rowAlignedX = mouseX - (this.lastState.board.length - posY) * (pixelX / 2);
-    var posX = Math.floor(rowAlignedX / pixelX);
+    var posY = Math.round(mouseY / pixelHalfY);
+    var posX = Math.round(mouseX / pixelHalfX);
+
+    if (posY % 2 == 1 && posX % 2 == 1) {
+      posY = posY * pixelHalfY / layout.domino.height;
+      posX = posX * pixelHalfX / layout.domino.width;
+    } else {
+      posY = Math.round(mouseY / layout.domino.height);
+      posX = Math.round(mouseX / layout.domino.width);
+    }
+    posY = posY * 2 - 1;
+    posX = posX - (this.lastState.board.length - posY) / 2
 
     if (posX < 0)
       return;
