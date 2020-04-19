@@ -1,4 +1,4 @@
-import { GameState } from "/common/gamestate.js";
+import { GameState } from "/common/GameState.js";
 import { Sprite } from "./gameutils.js/src/gjs/sprite.js";
 
 Sprite.gfxPath = '/';
