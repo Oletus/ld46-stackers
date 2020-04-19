@@ -64,7 +64,7 @@ const setStateFromResponse = (responseText, resetClient) => {
     console.log("Received game state from server: " + response.gameState);
     playerState = PlayerState.IN_GAME;
     // TODO: Should update the game on the client based on the game state!
-    board.draw(response.gameState, response.playerId);
+    board.onStateChange(response.gameState, response.playerId);
   } else if (response.hasOwnProperty("playerRegistered") && response.playerRegistered) {
     playerState = PlayerState.REGISTERED;
   }

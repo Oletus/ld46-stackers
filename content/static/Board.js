@@ -101,11 +101,19 @@ class Board {
     }
   }
 
-  draw(stateJSON, playerId) {
-    var state = JSON.parse(stateJSON);
-    this.drawGrid(state);
-    this.drawPieces(state);
-    this.drawDeck(state, playerId);
+  onStateChange(stateJSON, playerId) {
+    this.lastState = JSON.parse(stateJSON);
+    this.localPlayerId = playerId;
+    this.redraw();
+  }
+
+  redraw() {
+    if (this.lastState === undefined || this.localPlayerId === undefined)
+      return;
+
+    this.drawGrid(this.lastState);
+    this.drawPieces(this.lastState);
+    this.drawDeck(this.lastState, this.localPlayerId);
   }
 }
 
