@@ -134,6 +134,35 @@ class Board {
     this.redraw();
   }
 
+  canvasPress(event) {
+    var x = event.currentPosition.x;
+    var y = event.currentPosition.y;
+
+    var boardTop = layout.board.offset.y + layout.domino.height;
+    var boardBottom = boardTop + (this.lastState.board.length) * layout.domino.height;
+    var boardLeft = layout.board.offset.x + (layout.domino.width / 2); 
+    var longest = this.lastState.board[this.lastState.board.length - 1].length // The number of dominos in the bottom row
+    var boardRight = boardLeft + (longest * layout.domino.width);
+
+    var deckTop = layout.deck.offset.y;
+    var deckBottom = deckTop + Math.ceil(this.lastState.decks[this.localPlayerId].length / 8) * (layout.domino.height + layout.deck.padding.y);
+    var deckLeft = layout.deck.offset.x;
+    var deckRight = deckLeft + 8 * (layout.domino.width + layout.deck.padding.x) - layout.deck.padding.x;
+
+    if (y > boardTop && y < boardBottom && x > boardLeft && x < boardRight) {
+      console.log("In the board area!");
+    } else if (y > deckTop && y < deckBottom && x > deckLeft && x < deckRight) {
+      console.log("In the deck area!");
+    } 
+
+  }
+
+  canvasRelease(event) {
+  }
+
+  canvasMove(event) {
+  }
+
   redraw() {
     if (this.lastState === undefined || this.localPlayerId === undefined)
       return;

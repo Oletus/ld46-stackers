@@ -41,8 +41,7 @@ import { CanvasResizer } from "./gameutils.js/src/gjs/canvasresizer.js";
 
 let contentDiv;
 let canvas;
-let ctx;
-let resizeCtx;
+let realCtx;
 let resizer;
 
 let playerState = PlayerState.UNREGISTERED;
@@ -128,12 +127,13 @@ const start = () => {
   });
   window.resizer = resizer;
   var canvas = resizer.getCanvas();
-  ctx = canvas.getContext('2d');
+  realCtx = canvas.getContext('2d');
   var resizerCtx = resizer.render();
   if (resizerCtx !== undefined) {
-    ctx = resizerCtx;
+    realCtx = resizerCtx;
   }
-  board = new Board(ctx);
+  board = new Board(realCtx);
+  resizer.createPointerEventListener(board, true);
 
   canvas.addEventListener('mousemove', e => {
     board.onMouseMove({x: e.offsetX, y: e.offsetY});
