@@ -177,9 +177,9 @@ class Board {
       this.relayoutBounds();
     
     if (isInside(layout.board.bounds, x, y)) {
-      console.log("In the board area!");
+      this.tryClickBoard(x, y);
     } else if (isInside(layout.deck.bounds, x, y)) {
-      console.log("In the deck area!");
+      this.tryClickDeck(x, y);
     }
   }
 
@@ -188,7 +188,60 @@ class Board {
 
   canvasMove(event) {
   }
+  
+  tryClickBoard(mouseX, mouseY) {
+    mouseX = mouseX - layout.board.offset.x;
+    mouseY = mouseY - layout.board.offset.y;
 
+    var pixelX = layout.domino.width;
+    var pixelY = layout.domino.height;
+    
+    var posY = Math.floor(mouseY / pixelY);
+    
+    var rowAlignedX = mouseX - (this.lastState.board.length - posY) * (pixelX / 2);
+    var posX = Math.floor(rowAlignedX / pixelX);
+
+    if (posX < 0)
+      return;
+    
+    var gridPos = {x: posX, y: posY};
+    this.tryPlaceDomino(this.dragged_domino, gridPos)
+  }
+  
+  tryClickDeck(mouseX, mouseY) {
+    mouseX = mouseX - layout.deck.offset.x;
+    mouseY = mouseY - layout.deck.offset.y;
+
+    var pixelX = (layout.domino.width + layout.deck.padding.x);
+    var pixelY = (layout.domino.height + layout.deck.padding.y);
+
+    var posX = Math.floor(mouseX / pixelX);
+
+    var overshoot = mouseX - posX * pixelX - layout.domino.width;
+    if (overshoot > 0)
+      return;
+
+    var posY = Math.floor(mouseY / pixelY);
+    overshoot = mouseY - posY * pixelY - layout.domino.height;
+    if (overshoot > 0)
+      return;
+
+    var index = posX + posY * DECK_DOMINOS_WIDTH;
+    var dominoId = this.lastState.decks[this.localPlayerId][index];
+    this.tryPickupDomino(dominoId);
+    this.redraw();
+  }
+
+  tryPickupDomino(dominoId) {
+    if (this.dragged_domino === dominoId) {
+      this.dragged_domino = 0
+      return;
+    }
+
+    this.dragged_domino = dominoId;
+    return true;
+  }
+  
   tryPlaceDomino(dominoId, gridPos = {x: 0, y: 0}) {
     if (this.lastState === undefined || this.localPlayerId === undefined)
       return false;
