@@ -113,6 +113,7 @@ class GameState {
     this.state.decks[playerIndex] = newDeck;
     this.state.board[slotCoord.y][slotCoord.x] = pieceId
     this.state.turn = (playerIndex + 1) % 2;
+    return true;
   }
 }
 

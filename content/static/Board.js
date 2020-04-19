@@ -1,3 +1,4 @@
+import { GameState } from "/common/gamestate.js";
 import { Sprite } from "./gameutils.js/src/gjs/sprite.js";
 
 Sprite.gfxPath = '/';
@@ -41,6 +42,8 @@ class Board {
     this.mousePos = {x:0, y:0};
     
     this.dragged_domino = 0;
+
+    this.gameContainer = new GameState("Me", "Them");
   }
 
   drawGrid(state) {
@@ -112,15 +115,16 @@ class Board {
   }
 
   drawHeldDomino(state, mousePos) {
-    if (this.dragged_domino) {
-      var domino = state.dominos[this.dragged_domino];
-      if (domino === undefined)
-        return;
+    if (!this.dragged_domino)
+      return;
 
-      var x = layout.dragged.offset.x + mousePos.x;
-      var y = layout.dragged.offset.y + mousePos.y;
-      this.drawDomino(domino, x, y);
-    }
+    var domino = state.dominos[this.dragged_domino];
+    if (domino === undefined)
+      return;
+
+    var x = layout.dragged.offset.x + mousePos.x;
+    var y = layout.dragged.offset.y + mousePos.y;
+    this.drawDomino(domino, x, y);
   }
 
   onStateChange(stateJSON, playerId) {
@@ -161,6 +165,30 @@ class Board {
   }
 
   canvasMove(event) {
+  }
+
+  tryPlaceDomino(dominoId, gridPos = {x: 0, y: 0}) {
+    if (this.lastState === undefined || this.localPlayerId === undefined)
+      return false;
+
+    this.gameContainer.state = this.lastState
+    var success = this.gameContainer.placePiece(this.localPlayerId, dominoId, gridPos);
+    console.log("Tried place", dominoId, gridPos, success);
+    if (success) {
+      this.dragged_domino = 0;
+      fetch('/place_piece', {
+        method: 'POST',
+        body: JSON.stringify({
+          pieceId: dominoId,
+          slotX: gridPos.x,
+          slotY: gridPos.y,
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8'
+        }
+      });
+      this.redraw();
+    }
   }
 
   redraw() {
