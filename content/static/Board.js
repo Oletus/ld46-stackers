@@ -46,13 +46,23 @@ class Board {
   drawGrid(state) {
     var grid = state.board;
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.beginPath();
     for (var row = 0; row < grid.length; ++row) {
       for (var slotI = 0; slotI < grid[row].length; ++slotI) {
-        let x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        let y = layout.board.offset.y + (row + 1) * layout.domino.height;
-        this.ctx.strokeRect(x, y, layout.domino.width, layout.domino.height);
+        var x1 = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
+        var x2 = x1 + layout.domino.width / 2;
+        var x3 = x1 + layout.domino.width;
+        var y1 = layout.board.offset.y + (row + 1) * layout.domino.height / 2;
+        var y2 = y1 + layout.domino.height / 2;
+        var y3 = y1 + layout.domino.height;
+        this.ctx.moveTo(x2, y1);
+        this.ctx.lineTo(x3, y2);
+        this.ctx.lineTo(x2, y3);
+        this.ctx.lineTo(x1, y2);
+        this.ctx.lineTo(x2, y1);
       }
     }
+    this.ctx.stroke();
   }
   
   drawDomino(domino, x, y) {
