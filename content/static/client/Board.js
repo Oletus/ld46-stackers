@@ -32,35 +32,34 @@ class Board {
         this.domino_bottom_rights = [this.domino_br_red, this.domino_br_green, this.domino_br_blue];
     }
 
-    init() {
+    init(grid) {
         console.log("Drawing board grid...");
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         let row_pos = 0;
-        for (var row of test_grid) {
+        for (var row of grid) {
             row_pos += 1;
             let slot_pos = 0;
             for (var slot of row) {
                 slot_pos += 1;
-                let x = (test_grid.length-row_pos)*(this.domino_base.width/2) + (slot_pos*this.domino_base.width);
-                let y = (row_pos+1)*this.domino_base.height;
-                ctx.strokeRect(x, y, this.domino_base.width, this.domino_base.height);
+                let x = (grid.length-row_pos)*(this.domino_base.img.width/2) + (slot_pos*this.domino_base.img.width);
+                let y = (row_pos+1)*this.domino_base.img.height;
+                ctx.strokeRect(x, y, this.domino_base.img.width, this.domino_base.img.height);
             }
         }
     };
 
-    draw() {
+    draw(grid) {
         console.log("Drawing board...");
         let row_pos = 0;
-        for (var row of test_grid) {
+        for (var row of grid) {
             row_pos += 1;
             let slot_pos = 0;
             for (var slot of row) {
                 slot_pos += 1;
                 if (slot) {
-                    var x = (test_grid.length-row_pos)*(this.domino_base.width/2) + (slot_pos*this.domino_base.width);
-                    var y = (row_pos+1)*this.domino_base.height;
-                    console.log(this.domino_base);
-                    this.domino_base.draw(ctx, 100, 100);
+                    var x = (grid.length-row_pos)*(this.domino_base.img.width/2) + (slot_pos*this.domino_base.img.width);
+                    var y = (row_pos+1)*this.domino_base.img.height;
+                    this.domino_base.draw(ctx, x, y);
                     this.domino_tops[slot.primary-1].draw(ctx, x, y);
                     this.domino_bottom_lefts[slot.left-1].draw(ctx, x, y);
                     this.domino_bottom_rights[slot.right-1].draw(ctx, x, y);

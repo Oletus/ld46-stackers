@@ -9,7 +9,6 @@ import yargs from 'yargs';
 import { GameState } from './common/GameState.js';
 import { Player } from './gamelobby/Player.js';
 import { GameList } from './gamelobby/GameList.js';
-import { Board } from './client/Board.js';
 
 const prepareCommands = () => yargs
   .alias('p', 'port')
