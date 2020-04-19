@@ -118,8 +118,8 @@ window.post = (url, jsonData, resetClient) => {
 const start = () => {
   contentDiv = document.getElementById("content");
   canvas = document.createElement('canvas');
-  canvas.width = 700;
-  canvas.height = 600;
+  canvas.width = 1440;
+  canvas.height = 1080;
   ctx = canvas.getContext('2d');
   document.body.appendChild(canvas);
   board = new Board(ctx);
