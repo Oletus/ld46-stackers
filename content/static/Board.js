@@ -74,10 +74,36 @@ class Board {
     }
   }
 
+  drawDeck(state) {
+    var deckOffset = {x: this.domino_base.img.width / 2, y: this.domino_base.img.height * 7.5}
+    var deck = state.decks[0];
+    for (var slotI = 0; slotI < deck.length; ++slotI) {
+      var domino = deck[slotI];
+      if (domino === 0)
+        continue;
+
+      var domino = state.dominos[domino];
+      if (domino === undefined)
+        continue;
+
+      var x = slotI % 8;
+      var y = Math.floor(slotI / 8);
+      
+      var x = x * (this.domino_base.img.width + 10) + deckOffset.x;
+      var y = y * (this.domino_base.img.height + 4) + deckOffset.y;
+
+      this.domino_base.draw(this.ctx, x, y);
+      this.domino_tops[domino.primary].draw(this.ctx, x, y);
+      this.domino_bottom_lefts[domino.left].draw(this.ctx, x, y);
+      this.domino_bottom_rights[domino.right].draw(this.ctx, x, y);
+    }
+  }
+
   draw(stateJSON) {
     var state = JSON.parse(stateJSON);
     this.drawGrid(state);
     this.drawPieces(state);
+    this.drawDeck(state);
   }
 }
 
