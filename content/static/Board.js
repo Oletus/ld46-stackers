@@ -70,9 +70,9 @@ class Board {
         var x = (grid.length - row) * (this.domino_base.img.width / 2) + (slotI * this.domino_base.img.width);
         var y = (row + 1) * this.domino_base.img.height;
         this.domino_base.draw(this.ctx, x, y);
-        this.domino_tops[slot.primary].draw(this.ctx, x, y);
-        this.domino_bottom_lefts[slot.left].draw(this.ctx, x, y);
-        this.domino_bottom_rights[slot.right].draw(this.ctx, x, y);
+        this.domino_tops[domino.primary].draw(this.ctx, x, y);
+        this.domino_bottom_lefts[domino.left].draw(this.ctx, x, y);
+        this.domino_bottom_rights[domino.right].draw(this.ctx, x, y);
       }
     }
   }
