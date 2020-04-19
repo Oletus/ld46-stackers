@@ -3,6 +3,7 @@ import { Sprite } from "./gameutils.js/src/gjs/sprite.js";
 
 Sprite.gfxPath = '/';
 
+const DECK_DOMINOS_WIDTH = 8
 
 const layout = {
   board: {offset: {x: 0, y: 0}},
@@ -10,6 +11,14 @@ const layout = {
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
 }
+
+const isInside = (bounds, x, y) => {
+  if (bounds === undefined)
+    return false;
+
+  return y > bounds.top && y < bounds.bottom && x > bounds.left && x < bounds.right;
+}
+
 
 class Board {
   constructor(ctx) {
@@ -45,6 +54,28 @@ class Board {
 
     this.gameContainer = new GameState("Me", "Them");
   }
+  
+  relayoutBounds() {
+    if (this.lastState === undefined || this.localPlayerId === undefined)
+      return false;
+
+    var rowCount = this.lastState.board.length;
+    var longest = this.lastState.board[rowCount - 1].length // The number of dominos in the bottom row
+    var playerDeckSize = this.lastState.decks[this.localPlayerId].length;
+
+    layout.board.bounds = {}
+    layout.board.bounds.top = layout.board.offset.y,
+    layout.board.bounds.bottom = layout.board.bounds.top + rowCount * layout.domino.height;
+    layout.board.bounds.left = layout.board.offset.x + (layout.domino.width / 2); 
+    layout.board.bounds.right = layout.board.bounds.left + (longest * layout.domino.width);
+
+    layout.deck.bounds = {}
+    layout.deck.bounds.top = layout.deck.offset.y;
+    layout.deck.bounds.bottom = layout.deck.bounds.top + Math.ceil(playerDeckSize / DECK_DOMINOS_WIDTH) * (layout.domino.height + layout.deck.padding.y);
+    layout.deck.bounds.left = layout.deck.offset.x;
+    layout.deck.bounds.right = layout.deck.bounds.left + DECK_DOMINOS_WIDTH * (layout.domino.width + layout.deck.padding.x) - layout.deck.padding.x;
+    return true;
+  }
 
   drawGrid(state) {
     var grid = state.board;
@@ -52,7 +83,7 @@ class Board {
     for (var row = 0; row < grid.length; ++row) {
       for (var slotI = 0; slotI < grid[row].length; ++slotI) {
         let x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        let y = layout.board.offset.y + (row + 1) * layout.domino.height;
+        let y = layout.board.offset.y + row * layout.domino.height;
         this.ctx.strokeRect(x, y, layout.domino.width, layout.domino.height);
       }
     }
@@ -85,7 +116,7 @@ class Board {
           continue;
 
         var x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        var y = layout.board.offset.y + (row + 1) * layout.domino.height;
+        var y = layout.board.offset.y + row * layout.domino.height;
         this.drawDomino(domino, x, y);
       }
     }
@@ -105,8 +136,8 @@ class Board {
       if (domino === undefined)
         continue;
 
-      var x = slotI % 8;
-      var y = Math.floor(slotI / 8);
+      var x = slotI % DECK_DOMINOS_WIDTH;
+      var y = Math.floor(slotI / DECK_DOMINOS_WIDTH);
       
       var x = layout.deck.offset.x + x * (layout.domino.width + layout.deck.padding.x);
       var y = layout.deck.offset.y + y * (layout.domino.height + layout.deck.padding.y);
@@ -142,23 +173,14 @@ class Board {
     var x = event.currentPosition.x;
     var y = event.currentPosition.y;
 
-    var boardTop = layout.board.offset.y + layout.domino.height;
-    var boardBottom = boardTop + (this.lastState.board.length) * layout.domino.height;
-    var boardLeft = layout.board.offset.x + (layout.domino.width / 2); 
-    var longest = this.lastState.board[this.lastState.board.length - 1].length // The number of dominos in the bottom row
-    var boardRight = boardLeft + (longest * layout.domino.width);
-
-    var deckTop = layout.deck.offset.y;
-    var deckBottom = deckTop + Math.ceil(this.lastState.decks[this.localPlayerId].length / 8) * (layout.domino.height + layout.deck.padding.y);
-    var deckLeft = layout.deck.offset.x;
-    var deckRight = deckLeft + 8 * (layout.domino.width + layout.deck.padding.x) - layout.deck.padding.x;
-
-    if (y > boardTop && y < boardBottom && x > boardLeft && x < boardRight) {
+    if (layout.board.bounds === undefined || layout.deck.bounds === undefined)
+      this.relayoutBounds();
+    
+    if (isInside(layout.board.bounds, x, y)) {
       console.log("In the board area!");
-    } else if (y > deckTop && y < deckBottom && x > deckLeft && x < deckRight) {
+    } else if (isInside(layout.deck.bounds, x, y)) {
       console.log("In the deck area!");
-    } 
-
+    }
   }
 
   canvasRelease(event) {
