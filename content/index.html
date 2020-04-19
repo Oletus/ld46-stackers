@@ -37,10 +37,13 @@ const formToJSON = elements => [].reduce.call(elements, (data, element) => {
 
 import { PlayerState } from './common/PlayerState.js';
 import { Board } from "./Board.js";
+import { CanvasResizer } from "./gameutils.js/src/gjs/canvasresizer.js";
 
 let contentDiv;
 let canvas;
-let ctx;
+let realCtx;
+let resizer;
+let pixelator;
 
 let playerState = PlayerState.UNREGISTERED;
 let board;
@@ -117,12 +120,27 @@ window.post = (url, jsonData, resetClient) => {
 
 const start = () => {
   contentDiv = document.getElementById("content");
-  canvas = document.createElement('canvas');
-  canvas.width = 1440;
-  canvas.height = 1080;
-  ctx = canvas.getContext('2d');
-  document.body.appendChild(canvas);
-  board = new Board(ctx);
+  window.CanvasResizer = CanvasResizer;
+  resizer = new CanvasResizer({
+    mode: CanvasResizer.Mode.FIXED_RESOLUTION,
+    width: 700,
+    height: 600,
+  });
+  window.resizer = resizer;
+  var canvas = resizer.getCanvas();
+  realCtx = canvas.getContext('2d');
+  var resizerCtx = resizer.render();
+  if (resizerCtx !== undefined) {
+    realCtx = resizerCtx;
+  }
+  pixelator = resizer.pixelator();
+  board = new Board(realCtx);
+  resizer.createPointerEventListener(board, true);
+
+  window.addEventListener('resize', () => {
+    resizer.render();
+    pixelator.render();
+  })
 
   canvas.addEventListener('mousemove', e => {
     board.onMouseMove({x: e.offsetX, y: e.offsetY});

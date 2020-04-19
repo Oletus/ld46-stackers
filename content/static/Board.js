@@ -1,7 +1,9 @@
+import { GameState } from "/common/GameState.js";
 import { Sprite } from "./gameutils.js/src/gjs/sprite.js";
 
 Sprite.gfxPath = '/';
 
+const DECK_DOMINOS_WIDTH = 8
 
 const layout = {
   board: {offset: {x: 0, y: 0}},
@@ -9,6 +11,14 @@ const layout = {
   dragged: {offset: {x: 0, y: 0}},
   domino: {width: 64, height: 32},
 }
+
+const isInside = (bounds, x, y) => {
+  if (bounds === undefined)
+    return false;
+
+  return y > bounds.top && y < bounds.bottom && x > bounds.left && x < bounds.right;
+}
+
 
 class Board {
   constructor(ctx) {
@@ -41,6 +51,30 @@ class Board {
     this.mousePos = {x:0, y:0};
     
     this.dragged_domino = 0;
+
+    this.gameContainer = new GameState("Me", "Them");
+  }
+  
+  relayoutBounds() {
+    if (this.lastState === undefined || this.localPlayerId === undefined)
+      return false;
+
+    var rowCount = this.lastState.board.length;
+    var longest = this.lastState.board[rowCount - 1].length // The number of dominos in the bottom row
+    var playerDeckSize = this.lastState.decks[this.localPlayerId].length;
+
+    layout.board.bounds = {}
+    layout.board.bounds.top = layout.board.offset.y,
+    layout.board.bounds.bottom = layout.board.bounds.top + rowCount * layout.domino.height;
+    layout.board.bounds.left = layout.board.offset.x + (layout.domino.width / 2); 
+    layout.board.bounds.right = layout.board.bounds.left + (longest * layout.domino.width);
+
+    layout.deck.bounds = {}
+    layout.deck.bounds.top = layout.deck.offset.y;
+    layout.deck.bounds.bottom = layout.deck.bounds.top + Math.ceil(playerDeckSize / DECK_DOMINOS_WIDTH) * (layout.domino.height + layout.deck.padding.y);
+    layout.deck.bounds.left = layout.deck.offset.x;
+    layout.deck.bounds.right = layout.deck.bounds.left + DECK_DOMINOS_WIDTH * (layout.domino.width + layout.deck.padding.x) - layout.deck.padding.x;
+    return true;
   }
 
   drawGrid(state) {
@@ -52,7 +86,7 @@ class Board {
         var x1 = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
         var x2 = x1 + layout.domino.width / 2;
         var x3 = x1 + layout.domino.width;
-        var y1 = layout.board.offset.y + (row + 1) * layout.domino.height / 2;
+        var y1 = layout.board.offset.y + row * layout.domino.height / 2;
         var y2 = y1 + layout.domino.height / 2;
         var y3 = y1 + layout.domino.height;
         this.ctx.moveTo(x2, y1);
@@ -92,7 +126,7 @@ class Board {
           continue;
 
         var x = layout.board.offset.x + (grid.length - row) * (layout.domino.width / 2) + (slotI * layout.domino.width);
-        var y = layout.board.offset.y + (row + 1) * layout.domino.height / 2;
+        var y = layout.board.offset.y + row * layout.domino.height / 2;
         this.drawDomino(domino, x, y);
       }
     }
@@ -112,8 +146,8 @@ class Board {
       if (domino === undefined)
         continue;
 
-      var x = slotI % 8;
-      var y = Math.floor(slotI / 8);
+      var x = slotI % DECK_DOMINOS_WIDTH;
+      var y = Math.floor(slotI / DECK_DOMINOS_WIDTH);
       
       var x = layout.deck.offset.x + x * (layout.domino.width + layout.deck.padding.x);
       var y = layout.deck.offset.y + y * (layout.domino.height + layout.deck.padding.y);
@@ -122,15 +156,16 @@ class Board {
   }
 
   drawHeldDomino(state, mousePos) {
-    if (this.dragged_domino) {
-      var domino = state.dominos[this.dragged_domino];
-      if (domino === undefined)
-        return;
+    if (!this.dragged_domino)
+      return;
 
-      var x = layout.dragged.offset.x + mousePos.x;
-      var y = layout.dragged.offset.y + mousePos.y;
-      this.drawDomino(domino, x, y);
-    }
+    var domino = state.dominos[this.dragged_domino];
+    if (domino === undefined)
+      return;
+
+    var x = layout.dragged.offset.x + mousePos.x;
+    var y = layout.dragged.offset.y + mousePos.y;
+    this.drawDomino(domino, x, y);
   }
 
   onStateChange(stateJSON, playerId) {
@@ -140,8 +175,105 @@ class Board {
   }
 
   onMouseMove(mousePos) {
-    this.mousePos = mousePos;
+  }
+
+  canvasPress(event) {
+    var x = event.currentPosition.x;
+    var y = event.currentPosition.y;
+
+    if (layout.board.bounds === undefined || layout.deck.bounds === undefined)
+      this.relayoutBounds();
+    
+    if (isInside(layout.board.bounds, x, y)) {
+      this.tryClickBoard(x, y);
+    } else if (isInside(layout.deck.bounds, x, y)) {
+      this.tryClickDeck(x, y);
+    }
+  }
+
+  canvasRelease(event) {
+  }
+
+  canvasMove(event) {
+    this.mousePos = event.currentPosition;
     this.redraw();
+  }
+  
+  tryClickBoard(mouseX, mouseY) {
+    mouseX = mouseX - layout.board.offset.x;
+    mouseY = mouseY - layout.board.offset.y;
+
+    var pixelX = layout.domino.width;
+    var pixelY = layout.domino.height;
+    
+    var posY = Math.floor(mouseY / pixelY);
+    
+    var rowAlignedX = mouseX - (this.lastState.board.length - posY) * (pixelX / 2);
+    var posX = Math.floor(rowAlignedX / pixelX);
+
+    if (posX < 0)
+      return;
+    
+    var gridPos = {x: posX, y: posY};
+    this.tryPlaceDomino(this.dragged_domino, gridPos)
+  }
+  
+  tryClickDeck(mouseX, mouseY) {
+    mouseX = mouseX - layout.deck.offset.x;
+    mouseY = mouseY - layout.deck.offset.y;
+
+    var pixelX = (layout.domino.width + layout.deck.padding.x);
+    var pixelY = (layout.domino.height + layout.deck.padding.y);
+
+    var posX = Math.floor(mouseX / pixelX);
+
+    var overshoot = mouseX - posX * pixelX - layout.domino.width;
+    if (overshoot > 0)
+      return;
+
+    var posY = Math.floor(mouseY / pixelY);
+    overshoot = mouseY - posY * pixelY - layout.domino.height;
+    if (overshoot > 0)
+      return;
+
+    var index = posX + posY * DECK_DOMINOS_WIDTH;
+    var dominoId = this.lastState.decks[this.localPlayerId][index];
+    this.tryPickupDomino(dominoId);
+    this.redraw();
+  }
+
+  tryPickupDomino(dominoId) {
+    if (this.dragged_domino === dominoId) {
+      this.dragged_domino = 0
+      return;
+    }
+
+    this.dragged_domino = dominoId;
+    return true;
+  }
+  
+  tryPlaceDomino(dominoId, gridPos = {x: 0, y: 0}) {
+    if (this.lastState === undefined || this.localPlayerId === undefined)
+      return false;
+
+    this.gameContainer.state = this.lastState
+    var success = this.gameContainer.placePiece(this.localPlayerId, dominoId, gridPos);
+    console.log("Tried place", dominoId, gridPos, success);
+    if (success) {
+      this.dragged_domino = 0;
+      fetch('/place_piece', {
+        method: 'POST',
+        body: JSON.stringify({
+          pieceId: dominoId,
+          slotX: gridPos.x,
+          slotY: gridPos.y,
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8'
+        }
+      });
+      this.redraw();
+    }
   }
 
   redraw() {
