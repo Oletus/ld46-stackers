@@ -43,6 +43,7 @@ let contentDiv;
 let canvas;
 let realCtx;
 let resizer;
+let pixelator;
 
 let playerState = PlayerState.UNREGISTERED;
 let board;
@@ -67,6 +68,8 @@ const setStateFromResponse = (responseText, resetClient) => {
     playerState = PlayerState.IN_GAME;
     // TODO: Should update the game on the client based on the game state!
     board.onStateChange(response.gameState, response.playerId);
+    resizer.render();
+    pixelator.render();
   } else if (response.hasOwnProperty("playerRegistered") && response.playerRegistered) {
     playerState = PlayerState.REGISTERED;
   }
@@ -121,7 +124,7 @@ const start = () => {
   contentDiv = document.getElementById("content");
   window.CanvasResizer = CanvasResizer;
   resizer = new CanvasResizer({
-    mode: CanvasResizer.Mode.DYNAMIC,
+    mode: CanvasResizer.Mode.FIXED_RESOLUTION,
     width: 700,
     height: 600,
   });
@@ -132,6 +135,7 @@ const start = () => {
   if (resizerCtx !== undefined) {
     realCtx = resizerCtx;
   }
+  pixelator = resizer.pixelator();
   board = new Board(realCtx);
   resizer.createPointerEventListener(board, true);
 
