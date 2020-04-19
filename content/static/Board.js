@@ -112,15 +112,16 @@ class Board {
   }
 
   drawHeldDomino(state, mousePos) {
-    if (this.dragged_domino) {
-      var domino = state.dominos[this.dragged_domino];
-      if (domino === undefined)
-        return;
+    if (!this.dragged_domino)
+      return;
 
-      var x = layout.dragged.offset.x + mousePos.x;
-      var y = layout.dragged.offset.y + mousePos.y;
-      this.drawDomino(domino, x, y);
-    }
+    var domino = state.dominos[this.dragged_domino];
+    if (domino === undefined)
+      return;
+
+    var x = layout.dragged.offset.x + mousePos.x;
+    var y = layout.dragged.offset.y + mousePos.y;
+    this.drawDomino(domino, x, y);
   }
 
   onStateChange(stateJSON, playerId) {
