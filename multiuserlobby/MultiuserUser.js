@@ -1,9 +1,9 @@
 
-class Player {
+class MultiuserUser {
   constructor(id, name) {
     this.id = "" + id;
     this.name = name;
   }
 }
 
-export { Player }
+export { MultiuserUser }

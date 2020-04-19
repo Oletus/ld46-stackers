@@ -7,8 +7,7 @@ import imageSize from 'image-size';
 import yargs from 'yargs';
 
 import { GameState } from './common/GameState.js';
-import { Player } from './gamelobby/Player.js';
-import { GameList } from './gamelobby/GameList.js';
+import { MultiuserSessionList } from './multiuserlobby/MultiuserSessionList.js';
 
 const prepareCommands = () => yargs
   .alias('p', 'port')
@@ -49,18 +48,7 @@ const escapeHTML = (unsafe) => {
   });
 };
 
-let allRegisteredPlayers = [];
-const gameList = new GameList();
-
-const getPlayer = (session) => {
-  if (!session.hasOwnProperty("playerId")) {
-    return null;
-  }
-  if (session.playerId < 0 || session.playerId >= allRegisteredPlayers.length) {
-    return null;
-  }
-  return allRegisteredPlayers[session.playerId];
-}
+const gameList = new MultiuserSessionList(5);
 
 const indexHTML = fs.readFileSync('content/index.html', 'utf8');
 
@@ -68,8 +56,8 @@ const getPlayerChunk = (player) => {
   if (player !== null) {
     let playerInfoChunk = "";
     // TODO: Shouldn't show a list of all players on the server here.
-    if (gameList.getCurrentGameForPlayer(player) === null) {
-      playerInfoChunk = ` All players on server: ${getPlayersDisplayList()}.
+    if (gameList.getCurrentSessionForUser(player) === null) {
+      playerInfoChunk = `
      <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
      <input type="submit" value="Start game" />
      </form></div>`;
@@ -84,14 +72,6 @@ const getPlayerChunk = (player) => {
   }
 }
 
-const getPlayersDisplayList = () => {
-  const strList = [];
-  for (const player of allRegisteredPlayers) {
-    strList.push(escapeHTML(player.name));
-  }
-  return strList.join(', ');
-}
-
 app.get('/', (req, res) => {
   res.send(indexHTML);
 });
@@ -100,12 +80,16 @@ app.use(express.static('content/static'));
 app.use('/common', express.static('common'));
 
 const sendContent = (req, res, notification) => {
-  const player = getPlayer(req.session);
+  const player = gameList.getUser(req.session);
   const responseJson = {
     pageContentHTML: getPlayerChunk(player),
     playerRegistered: player !== null,
   };
-  const gameState = gameList.getCurrentGameForPlayer(player);
+  const gameSession = gameList.getCurrentSessionForUser(player);
+  let gameState = null;
+  if (gameSession != null) {
+    gameState = gameSession.appState;
+  }
   if (gameState !== null) {
     responseJson.playerId = gameState.getPlayerId(player.name);
     responseJson.gameState = gameState.toJSON();
@@ -124,43 +108,51 @@ app.get('/content', (req, res) => {
 app.post('/register', (req, res) => {
   console.log('Player register request:', req.body);
   if (req.body !== undefined && req.body.jsonData !== undefined) {
-    if (getPlayer(req.session) !== null) {
-      sendContent(req, res, 'You are already registered!');
+    let reqData;
+    try {
+      reqData = JSON.parse(req.body.jsonData);
+    } catch(err) {
+      sendContent(req, res, 'Failed to parse JSON');
       return;
     }
-    try {
-      const reqData = JSON.parse(req.body.jsonData);
-      const playerName = reqData.playerName;
-      req.session.playerId = allRegisteredPlayers.length;
-      allRegisteredPlayers.push(new Player(req.session.playerId, playerName));
+    if (!reqData.hasOwnProperty("playerName") || reqData.playerName === "") {
+      sendContent(req, res, 'playerName not set in register request');
+      return;
+    }
+    const playerName = reqData.playerName;
+    if (gameList.tryRegisterUser(req.session, playerName)) {
       console.log('Player registered:', playerName);
       sendContent(req, res);
       return;
-    } catch(err) {}
+    } else {
+      sendContent(req, res, 'Could not register - maybe you are already registered?');
+      return;
+    }
   }
-  sendContent(req, res, 'Something went wrong.');
+  sendContent(req, res, 'Invalid request.');
 });
 
 app.post('/startGame', (req, res) => {
-  const player = getPlayer(req.session);
-  if (player === null) {
+  const user = gameList.getUser(req.session);
+  if (user === null) {
     sendContent(req, res, 'You are not registered!');
     return;
   }
-  if (allRegisteredPlayers.length < 2) {
+  if (gameList.allRegisteredUsers.length < 2) {
     sendContent(req, res, 'Need two players present to start the game!');
     return;
   }
-  if (allRegisteredPlayers[0] !== player && allRegisteredPlayers[1] !== player) {
-    // TODO: Implement a better lobby system.
+  if (gameList.allRegisteredUsers[0] !== user && gameList.allRegisteredUsers[1] !== user) {
+    // TODO: Use the lobby system properly instead of just making a game for the first two users.
     sendContent(req, res, 'You need to be one of the first 2 players on the server to start the game!');
     return;
   }
-  gameList.startGame((players) => new GameState(players), [allRegisteredPlayers[0], allRegisteredPlayers[1]]);
+  const gameSession = gameList.startSession([gameList.allRegisteredUsers[0], gameList.allRegisteredUsers[1]]);
+  gameSession.startApp((users) => new GameState(users));
 });
 
 app.post('/place_piece', (req, res) => {
-  const player = getPlayer(req.session);
+  const player = gameList.getUser(req.session);
   if (player === null) {
     sendContent(req, res, 'You are not registered!');
     return;
@@ -170,11 +162,13 @@ app.post('/place_piece', (req, res) => {
     sendContent(req, res, 'Request malformed');
     return;
   }
-  var game = gameList.getCurrentGameForPlayer(player);
-  if (game === undefined) {
+  var multiuserSession = gameList.getCurrentSessionForUser(player);
+  if (multiuserSession === undefined || multiuserSession.appState === null) {
     sendContent(req, res, 'You are not part of a game');
     return;
   }
+
+  const game = multiuserSession.appState;
 
   try {
     const pieceId = req.body.pieceId;
