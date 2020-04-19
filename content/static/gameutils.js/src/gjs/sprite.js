@@ -309,9 +309,12 @@ Sprite['loadedFraction'] = function() {
  * @param {number} leftX X coordinate of the left edge.
  * @param {number} topY Y coordinate of the top edge.
  */
-Sprite.prototype.draw = function(ctx, leftX, topY) {
+Sprite.prototype.draw = function(ctx, leftX, topY, width, height) {
     if (this.loaded) {
-        ctx.drawImage(this.img, leftX, topY);
+        if (width !== undefined && height !== undefined)
+          ctx.drawImage(this.img, leftX, topY, width, height);
+        else
+          ctx.drawImage(this.img, leftX, topY);
     }
 };
 
