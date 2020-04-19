@@ -2,13 +2,6 @@ import { Sprite } from "./gameutils.js/src/gjs/sprite.js";
 
 Sprite.gfxPath = '/';
 
-var test_grid = [
-  [{"primary":1,"left":2,"right":1},0], 
-  [{"primary":1,"left":1,"right":3},{"primary":2,"left":3,"right":1},{"primary":1,"left":3,"right":3}], 
-  [{"primary":1,"left":3,"right":2},{"primary":1,"left":2,"right":1},0,{"primary":3,"left":2,"right":1}], 
-  [{"primary":1,"left":2,"right":1},0,{"primary":1,"left":2,"right":2},0,0], 
-  [{"primary":1,"left":1,"right":2},0,0,0,0,0]
-];
 
 class Board {
   constructor(ctx) {
