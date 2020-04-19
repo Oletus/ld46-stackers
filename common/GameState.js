@@ -109,6 +109,7 @@ class GameState {
     // piece wasn't in deck
     if (newDeck.length == deck.length)
       return false;
+    newDeck.push(this.generateRandomDomino().id);
     
     this.state.decks[playerIndex] = newDeck;
     this.state.board[slotCoord.y][slotCoord.x] = pieceId
