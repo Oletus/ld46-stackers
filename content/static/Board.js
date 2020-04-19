@@ -1,10 +1,6 @@
 import { Sprite } from "./gameutils.js/src/gjs/sprite.js";
 
-var ctx;
-var board;
-
-
-Sprite.gfxPath = 'static/';
+Sprite.gfxPath = '/';
 
 var test_grid = [
     [{"primary":1,"left":2,"right":1},0], 
@@ -15,7 +11,8 @@ var test_grid = [
 ];
 
 class Board {
-    constructor() {
+    constructor(ctx) {
+        this.ctx = ctx;
         this.domino_base = new Sprite('domino_base.png');
         this.domino_t_red = new Sprite('domino_top-red.png');
         this.domino_t_green = new Sprite('domino_top-green.png');
@@ -32,9 +29,10 @@ class Board {
         this.domino_bottom_rights = [this.domino_br_red, this.domino_br_green, this.domino_br_blue];
     }
 
-    init(grid) {
+    drawGrid(state) {
         console.log("Drawing board grid...");
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        var grid = state.board;
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         let row_pos = 0;
         for (var row of grid) {
             row_pos += 1;
@@ -43,14 +41,15 @@ class Board {
                 slot_pos += 1;
                 let x = (grid.length-row_pos)*(this.domino_base.img.width/2) + (slot_pos*this.domino_base.img.width);
                 let y = (row_pos+1)*this.domino_base.img.height;
-                ctx.strokeRect(x, y, this.domino_base.img.width, this.domino_base.img.height);
+                this.ctx.strokeRect(x, y, this.domino_base.img.width, this.domino_base.img.height);
             }
         }
-    };
+    }
 
-    draw(grid) {
+    drawPieces(state) {
         console.log("Drawing board...");
         let row_pos = 0;
+        var grid = state.board;
         for (var row of grid) {
             row_pos += 1;
             let slot_pos = 0;
@@ -59,14 +58,20 @@ class Board {
                 if (slot) {
                     var x = (grid.length-row_pos)*(this.domino_base.img.width/2) + (slot_pos*this.domino_base.img.width);
                     var y = (row_pos+1)*this.domino_base.img.height;
-                    this.domino_base.draw(ctx, x, y);
-                    this.domino_tops[slot.primary-1].draw(ctx, x, y);
-                    this.domino_bottom_lefts[slot.left-1].draw(ctx, x, y);
-                    this.domino_bottom_rights[slot.right-1].draw(ctx, x, y);
+                    this.domino_base.draw(this.ctx, x, y);
+                    this.domino_tops[slot.primary-1].draw(this.ctx, x, y);
+                    this.domino_bottom_lefts[slot.left-1].draw(this.ctx, x, y);
+                    this.domino_bottom_rights[slot.right-1].draw(this.ctx, x, y);
                 }
             }
         }
     }
-};
+
+    draw(stateJSON) {
+        var state = JSON.parse(stateJSON);
+        this.drawGrid(state);
+        this.drawPieces(state);
+    }
+}
 
 export { Board }

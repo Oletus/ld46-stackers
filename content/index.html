@@ -2,9 +2,7 @@
 <head>
 <title>LD46 - Stacker Slackers?</title>
 <link rel="stylesheet" type="text/css" href="/style.css">
-<script type="module">
-
-import { Board } from "./client/Board.js";
+<script type="text/javascript">
 
 const isCheckbox = element => element.type === 'checkbox';
 
@@ -38,10 +36,21 @@ const formToJSON = elements => [].reduce.call(elements, (data, element) => {
 <script type="module">
 
 import { PlayerState } from './common/PlayerState.js';
+import { Board } from "./Board.js";
 
 let contentDiv;
+let canvas;
+let ctx;
 
 let playerState = PlayerState.UNREGISTERED;
+let board;
+var test_grid = [
+    [{"primary":1,"left":2,"right":1},0],
+    [{"primary":1,"left":1,"right":3},{"primary":2,"left":3,"right":1},{"primary":1,"left":3,"right":3}],
+    [{"primary":1,"left":3,"right":2},{"primary":1,"left":2,"right":1},0,{"primary":3,"left":2,"right":1}],
+    [{"primary":1,"left":2,"right":1},0,{"primary":1,"left":2,"right":2},0,0],
+    [{"primary":1,"left":1,"right":2},0,0,0,0,0]
+];
 
 const delayBetweenRefresh = 2000;
 
@@ -62,6 +71,7 @@ const setStateFromResponse = (responseText, resetClient) => {
     console.log("Received game state from server: " + response.gameState);
     playerState = PlayerState.IN_GAME;
     // TODO: Should update the game on the client based on the game state!
+    board.draw(response.gameState);
   } else if (response.hasOwnProperty("playerRegistered") && response.playerRegistered) {
     playerState = PlayerState.REGISTERED;
   }
@@ -114,24 +124,13 @@ window.post = (url, jsonData, resetClient) => {
 
 const start = () => {
   contentDiv = document.getElementById("content");
+  canvas = document.createElement('canvas');
+  canvas.width = 500;
+  canvas.height = 300;
+  ctx = canvas.getContext('2d');
+  document.body.appendChild(canvas);
+  board = new Board(ctx);
   pollState(true);
-
-var test_grid = [
-    [{"primary":1,"left":2,"right":1},0],
-    [{"primary":1,"left":1,"right":3},{"primary":2,"left":3,"right":1},{"primary":1,"left":3,"right":3}],
-    [{"primary":1,"left":3,"right":2},{"primary":1,"left":2,"right":1},0,{"primary":3,"left":2,"right":1}],
-    [{"primary":1,"left":2,"right":1},0,{"primary":1,"left":2,"right":2},0,0],
-    [{"primary":1,"left":1,"right":2},0,0,0,0,0]
-];
-
-    board = new Board();
-    var canvas = document.createElement('canvas');
-    canvas.width = 500;
-    canvas.height = 300;
-    ctx = canvas.getContext('2d');
-    document.body.appendChild(canvas);
-    board.init(test_grid);
-    //board.draw();
 
 }
 
