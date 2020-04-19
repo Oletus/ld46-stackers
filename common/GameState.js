@@ -71,11 +71,18 @@ class GameState {
     return playerIndex;
   }
   
-  replacePiece(playerIndex, pieceId) {
+  discardPiece(playerIndex, pieceId) {
     if (this.state.dominos[pieceId].primary == 0) {
       console.log("Cannot discard gold piece!");
       return false;
     }
+    if (!this.replacePiece(playerIndex, pieceId))
+      return false;
+
+    return true;
+  }
+  
+  replacePiece(playerIndex, pieceId) {
     var deck = this.state.decks[playerIndex];
     var newDeck = deck.filter(value => value != pieceId);
     if (newDeck.length == deck.length) {

@@ -251,7 +251,7 @@ class Board {
     if (this.dragged_domino == 0) {
       return false;
     }
-    var success = this.gameContainer.replacePiece(this.localPlayerId, this.dragged_domino);
+    var success = this.gameContainer.discardPiece(this.localPlayerId, this.dragged_domino);
     console.log("Tried discarding domino ", this.dragged_domino, success);
     if (success) {
       fetch('/discard_piece', {

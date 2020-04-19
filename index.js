@@ -267,7 +267,7 @@ app.post('/discard_piece', (req, res) => {
     const pieceId = req.body.pieceId;
 
     var playerId = game.getPlayerId(player.name);
-    var success = game.replacePiece(playerId, pieceId);
+    var success = game.discardPiece(playerId, pieceId);
     if (success)
       sendContent(req, res);
     else
