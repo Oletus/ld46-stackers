@@ -65,7 +65,7 @@ class Board {
 
     layout.board.bounds = {}
     layout.board.bounds.top = layout.board.offset.y,
-    layout.board.bounds.bottom = layout.board.bounds.top + rowCount * layout.domino.height;
+    layout.board.bounds.bottom = layout.board.bounds.top + (rowCount + 1) * layout.domino.height / 2;
     layout.board.bounds.left = layout.board.offset.x + (layout.domino.width / 2); 
     layout.board.bounds.right = layout.board.bounds.left + (longest * layout.domino.width);
 
