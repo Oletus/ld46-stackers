@@ -58,17 +58,20 @@ const getPlayerChunk = (player) => {
         otherPlayers = `<b>${otherPlayers}</b>`;
       }
 
-      let gameControlForm = `<div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
+      let gameControlForm = `<p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
+      <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
       </form></div>`;
+      let gameOrLobby = 'lobby';
       if (multiuserSession.appState !== null) {
-        gameControlForm = `<div class="formGrid"><form id="restartGameForm" onsubmit="window.postForm('/restartGame', document.getElementById('restartGameForm'), true); return false;">
-      <input type="submit" value="Restart game" />
-      </form></div>`;
+        gameControlForm = `<p>Your goal is to build a pyramid with the crown pieces on top. Colors must match on pieces that touch. Take turns and collaborate!</p>
+        <div class="formGrid"><form id="restartGameForm" onsubmit="window.postForm('/restartGame', document.getElementById('restartGameForm'), true); return false;">
+        <input type="submit" value="Restart game" />
+        </form></div>`;
+        gameOrLobby = 'game';
       }
 
-      playerInfoChunk = `<p>Other players currently in lobby: ${otherPlayers}.</p>
-      <p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
+      playerInfoChunk = `<p>Other players currently in ${gameOrLobby}: ${otherPlayers}.</p>
       ${gameControlForm}`;
     }
     return `<div class="registeredPlayer">You are: <b>${escapeHTML(player.name)}</b>.${playerInfoChunk}</div>`;
