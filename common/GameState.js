@@ -19,12 +19,13 @@ const generateRandomDominoColor = () => {
 class GameState {
   constructor(players) {
     this.players = [...players];
-    this.state = { id: 0, turn: 0, decks: [[], []], dominos: {}, board: [] };
-    this.nextDominoId = 0
     this.generateNewGame();
   }
   
   generateNewGame() {
+    this.state = { id: 0, turn: 0, victory:null, decks: [[], []], dominos: {}, board: [] };
+    this.nextDominoId = 0
+
     // board stores ids of dominos; dominos are looked up from state.dominos dictionary
     this.state.board = [[0,0], [0,0,0], [0,0,0,0], [0,0,0,0,0], [0,0,0,0,0,0]]
 
@@ -43,6 +44,8 @@ class GameState {
       this.state.decks[0].push(this.generateRandomDomino().id);
       this.state.decks[1].push(this.generateRandomDomino().id);
     }
+    this.state.decks[0].sort((a, b) => (this.state.dominos[a].primary === 0 ? -1000 : 0) + (this.state.dominos[a].left - this.state.dominos[b].left) * 100 + (this.state.dominos[a].right - this.state.dominos[b].right) * 10 + (this.state.dominos[a].primary - this.state.dominos[b].primary));
+    this.state.decks[1].sort((a, b) => (this.state.dominos[a].primary === 0 ? -1000 : 0) + (this.state.dominos[a].left - this.state.dominos[b].left) * 100 + (this.state.dominos[a].right - this.state.dominos[b].right) * 10 + (this.state.dominos[a].primary - this.state.dominos[b].primary));
   }
 
   fromJSON(json) {
@@ -91,6 +94,23 @@ class GameState {
     if (typeof this.players[0] === "object")
       newDeck.push(this.generateRandomDomino().id);
     this.state.decks[playerIndex] = newDeck;
+    return true;
+  }
+  
+  testVictory() {
+    var left = this.state.board[0][0];
+      if (left === 0)
+        return false;
+    var right = this.state.board[0][1]
+    if (right === 0)
+      return false;
+
+    left = this.state.dominos[left];
+    right = this.state.dominos[right];
+    if (0 !== left.primary || 0 !== right.primary)
+      return false;
+
+    this.state.victory = true;
     return true;
   }
 
@@ -145,6 +165,9 @@ class GameState {
 
     this.state.board[slotCoord.y][slotCoord.x] = pieceId
     this.state.turn = (playerIndex + 1) % 2;
+    
+    this.testVictory();
+    
     return true;
   }
 }

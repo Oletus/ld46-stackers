@@ -1,4 +1,6 @@
 
+import { escapeHTML } from './htmlUtil.js';
+
 class MultiuserSession {
 
   constructor(accessCode, users, apiOptions) {
@@ -46,6 +48,18 @@ class MultiuserSession {
 
   startApp(createStateFunc) {
     this.appState = createStateFunc(this.users);
+  }
+
+  userNameList(excludeUser) {
+    if (excludeUser) {
+      return this.users.filter(user => user != excludeUser).map(x => x.name);
+    } else {
+      return this.users.map(x => x.name);
+    }
+  }
+
+  userNameListHTML(excludeUser) {
+    return this.userNameList(excludeUser).map(name => escapeHTML(name)).join(', ');
   }
 
 }

@@ -12,6 +12,7 @@ const layout = {
   domino: {width: 64, height: 32},
   discard: {width: 128, height: 128, margin: {left: 20}},
   turnIndicator: {offset: {x: 100, y: 50}},
+  muteIcon: {width: 40, height: 40}
 }
 
 const isInside = (bounds, x, y) => {
@@ -21,6 +22,7 @@ const isInside = (bounds, x, y) => {
   return y > bounds.top && y < bounds.bottom && x > bounds.left && x < bounds.right;
 }
 
+var bgm
 
 class Board {
   constructor(ctx) {
@@ -48,6 +50,16 @@ class Board {
     this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue, this.domino_bl_yellow, this.domino_bl_purple];
     this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue, this.domino_br_yellow, this.domino_br_purple];
 
+    this.domino_transparent_top_bg = new Sprite('domino_transparent_top_bg.png');
+
+    this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_green, this.domino_t_blue];
+    this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
+    this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
+    
+    this.muted = true;
+    this.playing_icon = new Sprite('playing.png');
+    this.muted_icon = new Sprite('muted.png');
+
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
     layout.board.offset.x = (ctx.canvas.width - layout.discard.width - layout.discard.margin.left) / 2 - layout.domino.width * 3.5;
@@ -61,6 +73,8 @@ class Board {
     this.dragged_domino = 0;
 
     this.gameContainer = new GameState("Me", "Them");
+
+    bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay:false,loop:true,volume:0.2});
   }
   
   relayoutBounds() {
@@ -82,6 +96,12 @@ class Board {
     layout.discard.bounds.bottom = layout.discard.bounds.top + layout.discard.height;
     layout.discard.bounds.left = layout.board.bounds.right + layout.discard.margin.left;
     layout.discard.bounds.right = layout.discard.bounds.left + layout.discard.width;
+
+    layout.muteIcon.bounds = {}
+    layout.muteIcon.bounds.top = layout.board.bounds.top + layout.domino.height / 3;
+    layout.muteIcon.bounds.bottom = layout.muteIcon.bounds.top + layout.muteIcon.height;
+    layout.muteIcon.bounds.left = layout.discard.bounds.left + (layout.discard.width / 2) - (layout.muteIcon.width / 2);
+    layout.muteIcon.bounds.right = layout.muteIcon.bounds.left + layout.muteIcon.width;
 
     layout.deck.bounds = {}
     layout.deck.bounds.top = layout.deck.offset.y;
@@ -108,18 +128,31 @@ class Board {
         this.ctx.lineTo(x2, y3);
         this.ctx.lineTo(x1, y2);
         this.ctx.lineTo(x2, y1);
+
+        if (row === 0) {
+          this.domino_transparent_top_bg.drawRotated(this.ctx, x2, y2, 0.0)
+        }
       }
     }
     this.ctx.stroke();
 
     this.ctx.font = "30px Arial";
-    this.ctx.fillText(this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
+    this.ctx.fillText(this.lastState.victory === true ? "Success!" : this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
 
     if (layout.discard.bounds === undefined)
       this.relayoutBounds();
 
     this.ctx.fillRect(layout.discard.bounds.left, layout.discard.bounds.top , layout.discard.bounds.right - layout.discard.bounds.left, layout.discard.bounds.bottom - layout.discard.bounds.top);
+    this.drawAudioIcons();
   }
+ 
+  drawAudioIcons() {
+    if (this.muted) {
+      this.muted_icon.draw(this.ctx, layout.muteIcon.bounds.left, layout.muteIcon.bounds.top, layout.muteIcon.width, layout.muteIcon.height);
+    } else {
+      this.playing_icon.draw(this.ctx, layout.muteIcon.bounds.left, layout.muteIcon.bounds.top, layout.muteIcon.width, layout.muteIcon.height);
+    }
+  } 
   
   drawDomino(domino, x, y) {
     this.domino_base.draw(this.ctx, x, y, layout.domino.width, layout.domino.height);
@@ -193,6 +226,8 @@ class Board {
   onStateChange(stateJSON, playerId) {
     this.lastState = JSON.parse(stateJSON);
     this.localPlayerId = playerId;
+    if (!bgm.playing() && !this.muted)
+      bgm.play();
     this.redraw();
   }
 
@@ -212,6 +247,8 @@ class Board {
       this.tryClickDeck(x, y);
     } else if (isInside(layout.discard.bounds, x, y)) {
       this.tryClickDiscard();
+    } else if (isInside(layout.muteIcon.bounds, x, y)) {
+      this.toggleMute();
     }
   }
 
@@ -253,6 +290,12 @@ class Board {
     this.tryPlaceDomino(this.dragged_domino, gridPos)
   }
   
+  toggleMute() {
+    this.muted = !this.muted;
+    bgm.mute(this.muted);
+    this.redraw();
+  }
+
   tryClickDiscard() {
     if (this.dragged_domino == 0) {
       return false;
@@ -301,6 +344,9 @@ class Board {
   }
 
   tryPickupDomino(dominoId) {
+    if (this.lastState.victory === true || this.lastState.victory === false)
+      return;
+
     if (this.localPlayerId != this.lastState.turn) {
       return;
     }
