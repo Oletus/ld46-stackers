@@ -60,7 +60,7 @@ const getPlayerChunk = (player) => {
         otherPlayers = `<b>${otherPlayers}</b>`;
       }
 
-      let gameControlForm = `<p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
+      let gameControlForm = `<p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>. You need 2 players to be able to play.</p>
       <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
       </form></div>`;
