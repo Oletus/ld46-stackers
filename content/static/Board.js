@@ -64,6 +64,8 @@ class Board {
 
     this.gameContainer = new GameState("Me", "Them");
 
+    this.discards = 2;
+
     bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay:false,loop:true,volume:0.2});
   }
   
@@ -133,6 +135,8 @@ class Board {
       this.relayoutBounds();
 
     this.ctx.fillRect(layout.discard.bounds.left, layout.discard.bounds.top , layout.discard.bounds.right - layout.discard.bounds.left, layout.discard.bounds.bottom - layout.discard.bounds.top);
+    this.ctx.fillText("Discard", layout.discard.bounds.left + 15, layout.discard.bounds.bottom + 30);
+    this.ctx.fillText("(" + this.discards + " left)", layout.discard.bounds.left + 25,  layout.discard.bounds.bottom + 60);
     this.drawAudioIcons();
   }
  
@@ -290,7 +294,11 @@ class Board {
     if (this.dragged_domino == 0) {
       return false;
     }
-    
+
+    if (!this.discards) {
+      return false;
+    }
+
     this.gameContainer.state = this.lastState
     var success = this.gameContainer.discardPiece(this.localPlayerId, this.dragged_domino);
     console.log("Tried discarding domino ", this.dragged_domino, success);
@@ -304,6 +312,7 @@ class Board {
           'Content-type': 'application/json; charset=UTF-8'
         }
       });
+      this.discards -= 1;
       this.redraw();
       this.dragged_domino = 0;
     }
