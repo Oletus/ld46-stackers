@@ -39,6 +39,7 @@ const gameList = new MultiuserSessionList(accessCodeLength, maxPlayerNameLength)
 const indexHTML = fs.readFileSync('content/index.html', 'utf8');
 
 const getPlayerChunk = (player) => {
+  const logoImg = `<img src="domino_logo.png" alt="Stacker Slackers" class="logoImage">`;
   if (player !== null) {
     let playerInfoChunk = "";
     const multiuserSession = gameList.getCurrentSessionForUser(player);
@@ -49,7 +50,8 @@ const getPlayerChunk = (player) => {
       </form></div>
       <div class="formGrid"><form id="startLobbyForm" onsubmit="window.postForm('/startGameLobby', document.getElementById('startLobbyForm'), true); return false;">
       <input type="submit" value="Start a new game lobby" />
-      </form></div>`;
+      </form></div>
+      ${logoImg}`;
     } else {
       let otherPlayers = multiuserSession.userNameListHTML(player);
       if (otherPlayers === "") {
@@ -61,7 +63,8 @@ const getPlayerChunk = (player) => {
       let gameControlForm = `<p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
       <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
-      </form></div>`;
+      </form></div>
+      ${logoImg}`;
       let gameOrLobby = 'lobby';
       if (multiuserSession.appState !== null) {
         gameControlForm = `<p>Your goal is to build a pyramid with the crown pieces on top. Colors must match on pieces that touch. Take turns and collaborate!</p>
@@ -82,7 +85,8 @@ const getPlayerChunk = (player) => {
      Enter your name: 
      <input type="text" name="playerName" maxLength="${maxPlayerNameLength}" />
      <input type="submit" value="Register" />
-     </form></div>`;
+     </form></div>
+     ${logoImg}`;
   }
 }
 
