@@ -1,9 +1,10 @@
 class Domino {
-  constructor(id, primary, left, right) {
+  constructor(id, primary, left, right, word) {
     this.id = "" + id;
     this.primary = primary;
     this.left = left;
     this.right = right;
+    this.word = word;
   }
 }
 
@@ -21,11 +22,12 @@ const generateRandomDominoColor = () => {
 }
 
 class GameState {
-  constructor(players) {
+  constructor(players, wordsEnabled) {
     this.players = [...players];
+    this.wordsEnabled = wordsEnabled;
     this.generateNewGame();
   }
-  
+
   generateNewGame() {
     this.state = { id: 0, turn: 0, victory:null, decks: [[], []], dominos: {}, board: [] };
     this.nextDominoId = 0
@@ -93,8 +95,17 @@ class GameState {
     this.state.dominos[domino.id] = domino;
   }
   
+  generateRandomDominoWord() {
+    if (!this.wordsEnabled) {
+      return '';
+    }
+    const possibleWords = ['red', 'blue', 'crown', 'left', 'right', 'good', 'not'];
+    const wordIndex = Math.floor(Math.random() * possibleWords.length);
+    return possibleWords[wordIndex];
+  }
+  
   generateRandomDomino() {
-    var domino = new Domino(this.nextDominoId++, generateRandomDominoColor(), generateRandomDominoColor(), generateRandomDominoColor());
+    var domino = new Domino(this.nextDominoId++, generateRandomDominoColor(), generateRandomDominoColor(), generateRandomDominoColor(), this.generateRandomDominoWord());
     this.registerDomino(domino)
     return domino
   }

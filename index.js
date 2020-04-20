@@ -62,7 +62,7 @@ const getPlayerChunk = (player) => {
 
       let gameControlForm = `<p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>. You need 2 players to be able to play.</p>
       <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
-      <input type="submit" value="Play game" />
+      <input type="checkbox" name="wordsEnabled" id="wordsEnabled"><label for="wordsEnabled">Play word game mode</label> <input type="submit" value="Play game" />
       </form></div>`;
       let gameOrLobby = 'lobby';
       if (multiuserSession.appState !== null) {
@@ -197,6 +197,10 @@ app.post('/joinGameLobby', (req, res) => {
 });
 
 app.post('/startGame', (req, res) => {
+  const reqData = tryParseRequest(req, res);
+  if (reqData === null) {
+    return;
+  }
   const user = gameList.getUser(req.session);
   if (user === null) {
     sendContent(req, res, 'You are not registered!');
@@ -215,7 +219,8 @@ app.post('/startGame', (req, res) => {
     sendContent(req, res, 'App already started.');
     return;
   }
-  gameSession.startApp((users) => new GameState(users));
+  const wordsEnabled = reqData.hasOwnProperty("wordsEnabled") && reqData.wordsEnabled;
+  gameSession.startApp((users) => new GameState(users, wordsEnabled));
   sendContent(req, res);
 });
 
