@@ -99,7 +99,7 @@ class GameState {
     if (!this.wordsEnabled) {
       return '';
     }
-    const possibleWords = ['red', 'blue', 'crown', 'left', 'right', 'good', 'not'];
+    const possibleWords = ['red', 'blue', 'green', 'crown', 'left', 'right', 'good', 'not'];
     const wordIndex = Math.floor(Math.random() * possibleWords.length);
     return possibleWords[wordIndex];
   }
