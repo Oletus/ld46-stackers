@@ -127,7 +127,7 @@ class Board {
     this.ctx.stroke();
 
     this.ctx.font = "30px Arial";
-    this.ctx.fillText(this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
+    this.ctx.fillText(this.lastState.victory === true ? "Success!" : this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
 
     if (layout.discard.bounds === undefined)
       this.relayoutBounds();
