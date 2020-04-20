@@ -10,6 +10,7 @@ class MultiuserSession {
     const defaultOptions = {
       userCountLimit: -1,
       canJoinAfterAppStart: false,
+      killAppOnUserLeft: false,
     };
     this.options = {...defaultOptions, ...apiOptions};
 
@@ -43,6 +44,9 @@ class MultiuserSession {
     this.users.splice(userIndex, 1);
     if (this.appState !== null) {
       this.appState.onUserLeft(user);
+    }
+    if (this.options.killAppOnUserLeft) {
+      this.appState = null;
     }
     return true;
   }

@@ -63,8 +63,7 @@ const getPlayerChunk = (player) => {
       let gameControlForm = `<p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
       <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
-      </form></div>
-      ${logoImg}`;
+      </form></div>`;
       let gameOrLobby = 'lobby';
       if (multiuserSession.appState !== null) {
         gameControlForm = `<p>Your goal is to build a pyramid with the crown pieces on top. Colors must match on pieces that touch. Take turns and collaborate!</p>
@@ -75,7 +74,11 @@ const getPlayerChunk = (player) => {
       }
 
       playerInfoChunk = `<p>Other players currently in ${gameOrLobby}: ${otherPlayers}.</p>
-      ${gameControlForm}`;
+      ${gameControlForm}
+      <div class="formGrid"><form id="leaveLobbyForm" onsubmit="window.postForm('/leaveLobby', document.getElementById('leaveLobbyForm'), true); return false;">
+      <input type="submit" value="Leave ${gameOrLobby}" />
+      </form></div>
+      ${multiuserSession.appState === null ? logoImg : ""}`;
     }
     return `<div class="registeredPlayer">You are: <b>${escapeHTML(player.name)}</b>.${playerInfoChunk}</div>`;
   } else {
@@ -166,7 +169,7 @@ app.post('/startGameLobby', (req, res) => {
     sendContent(req, res, 'You are not registered!');
     return;
   }
-  gameList.startSession([user], {userCountLimit: 2});
+  gameList.startSession([user], {userCountLimit: 2, killAppOnUserLeft: true});
   sendContent(req, res);
 });
 
@@ -232,6 +235,19 @@ app.post('/restartGame', (req, res) => {
     return;
   }
   gameSession.restartApp();
+  sendContent(req, res);
+});
+
+app.post('/leaveLobby', (req, res) => {
+  const user = gameList.getUser(req.session);
+  if (user === null) {
+    sendContent(req, res, 'You are not registered!');
+    return;
+  }
+  if (!gameList.tryLeaveSession(user)) {
+    sendContent(req, res, "Could not leave session - maybe you're not in a game lobby yet?");
+    return;
+  }
   sendContent(req, res);
 });
 

@@ -53,7 +53,7 @@ class MultiuserSessionList {
     return this.allRegisteredUsers[httpSession.multiuserId - 1];
   }
 
-  // TODO: Support destroying sessions automatically after a timeout or once all users leave.
+  // TODO: Support destroying sessions automatically after a timeout from all users.
   startSession(users, sessionOptions) {
     const session = new MultiuserSession(genAccessCode(this.accessCodeLength), users, sessionOptions);
     this.ongoingSessions.push(session);
@@ -70,11 +70,11 @@ class MultiuserSessionList {
       return false;
     }
     const session = this.ongoingSessionsByAccessCode[accessCode];
-    if (session.tryJoin(user)) {
-      this.ongoingSessionsByUserId[user.id] = session;
-      return true;
+    if (!session.tryJoin(user)) {
+      return false;
     }
-    return false;
+    this.ongoingSessionsByUserId[user.id] = session;
+    return true;
   }
 
   tryLeaveSession(user) {
@@ -82,10 +82,23 @@ class MultiuserSessionList {
       return false;
     }
     const session = this.ongoingSessionsByUserId[user.id];
-    if (!session.tryLeave(user.id)) {
+    if (!session.tryLeave(user)) {
       return false;
     }
     delete this.ongoingSessionsByUserId[user.id];
+    this.cleanPossiblyEmptySession(session);
+    return true;
+  }
+
+  cleanPossiblyEmptySession(session) {
+    if (session === null) {
+      return;
+    }
+    if (session.users.length > 0) {
+      return;
+    }
+    this.ongoingSessions.splice(this.ongoingSessions.indexOf(session), 1);
+    delete this.ongoingSessionsByAccessCode[session.accessCode];
   }
 
   getCurrentSessionForUser(user) {
