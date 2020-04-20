@@ -64,7 +64,7 @@ class Board {
 
     this.gameContainer = new GameState("Me", "Them");
 
-    bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay: !this.muted,loop:true,volume:0.2});
+    bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay:false,loop:true,volume:0.2});
   }
   
   relayoutBounds() {
@@ -216,7 +216,7 @@ class Board {
   onStateChange(stateJSON, playerId) {
     this.lastState = JSON.parse(stateJSON);
     this.localPlayerId = playerId;
-    if (!bgm.playing())
+    if (!bgm.playing() && !this.muted)
       bgm.play();
     this.redraw();
   }
