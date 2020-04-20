@@ -48,7 +48,7 @@ class GameState {
     }
 
     for (var i = 0; i < FIXED_TILE_COUNT; ++i) {
-      var y = 1 + generateRandomNumber(this.state.board.length - 1)
+      var y = 2 + generateRandomNumber(this.state.board.length - 2)
       var x = generateRandomNumber(this.state.board[y].length)
       var left = generateRandomDominoColor();
       var right = generateRandomDominoColor();
