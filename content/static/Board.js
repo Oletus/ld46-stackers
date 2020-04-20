@@ -40,6 +40,8 @@ class Board {
     this.domino_bl_blue = new Sprite('domino_bottom_left-blue.png');
     this.domino_br_blue = new Sprite('domino_bottom_right-blue.png');
 
+    this.domino_transparent_top_bg = new Sprite('domino_transparent_top_bg.png');
+
     this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_green, this.domino_t_blue];
     this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
     this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
@@ -116,6 +118,10 @@ class Board {
         this.ctx.lineTo(x2, y3);
         this.ctx.lineTo(x1, y2);
         this.ctx.lineTo(x2, y1);
+
+        if (row === 0) {
+          this.domino_transparent_top_bg.drawRotated(this.ctx, x2, y2, 0.0)
+        }
       }
     }
     this.ctx.stroke();
