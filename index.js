@@ -33,7 +33,8 @@ var sessionSettings = {
 app.use(session(sessionSettings));
 
 const accessCodeLength = 5;
-const gameList = new MultiuserSessionList(accessCodeLength);
+const maxPlayerNameLength = 20;
+const gameList = new MultiuserSessionList(accessCodeLength, maxPlayerNameLength);
 
 const indexHTML = fs.readFileSync('content/index.html', 'utf8');
 
@@ -64,9 +65,10 @@ const getPlayerChunk = (player) => {
     }
     return `<div class="registeredPlayer">You are: <b>${escapeHTML(player.name)}</b>.${playerInfoChunk}</div>`;
   } else {
-    return `<div class="unregisteredPlayer"><form id="registerForm" onsubmit="window.postForm('/register', document.getElementById('registerForm'), true); return false;">
-     Your name: 
-     <input type="text" name="playerName" />
+    return `<p>Welcome to Stacker Slackers, an online multiplayer game made for Ludum Dare 46.</p>
+     <div class="unregisteredPlayer"><form id="registerForm" onsubmit="window.postForm('/register', document.getElementById('registerForm'), true); return false;">
+     Enter your name: 
+     <input type="text" name="playerName" maxLength="${maxPlayerNameLength}" />
      <input type="submit" value="Register" />
      </form></div>`;
   }
