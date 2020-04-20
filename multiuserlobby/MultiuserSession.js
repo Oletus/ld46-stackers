@@ -14,6 +14,7 @@ class MultiuserSession {
     this.options = {...defaultOptions, ...apiOptions};
 
     this.appState = null;
+    this.lastCreateStateFunc = null;
   }
 
   tryJoin(user) {
@@ -47,7 +48,14 @@ class MultiuserSession {
   }
 
   startApp(createStateFunc) {
-    this.appState = createStateFunc(this.users);
+    this.lastCreateStateFunc = createStateFunc;
+    this.appState = this.lastCreateStateFunc(this.users);
+  }
+
+  restartApp() {
+    if (this.lastCreateStateFunc !== null) {
+      this.appState = this.lastCreateStateFunc(this.users);
+    }
   }
 
   userNameList(excludeUser) {

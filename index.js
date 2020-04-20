@@ -57,11 +57,19 @@ const getPlayerChunk = (player) => {
       } else {
         otherPlayers = `<b>${otherPlayers}</b>`;
       }
-      playerInfoChunk = `<p>Other players currently in lobby: ${otherPlayers}.</p>
-      <p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
-      <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
+
+      let gameControlForm = `<div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
       </form></div>`;
+      if (multiuserSession.appState !== null) {
+        gameControlForm = `<div class="formGrid"><form id="restartGameForm" onsubmit="window.postForm('/restartGame', document.getElementById('restartGameForm'), true); return false;">
+      <input type="submit" value="Restart game" />
+      </form></div>`;
+      }
+
+      playerInfoChunk = `<p>Other players currently in lobby: ${otherPlayers}.</p>
+      <p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
+      ${gameControlForm}`;
     }
     return `<div class="registeredPlayer">You are: <b>${escapeHTML(player.name)}</b>.${playerInfoChunk}</div>`;
   } else {
@@ -198,6 +206,25 @@ app.post('/startGame', (req, res) => {
     return;
   }
   gameSession.startApp((users) => new GameState(users));
+  sendContent(req, res);
+});
+
+app.post('/restartGame', (req, res) => {
+  const user = gameList.getUser(req.session);
+  if (user === null) {
+    sendContent(req, res, 'You are not registered!');
+    return;
+  }
+  const gameSession = gameList.getCurrentSessionForUser(user);
+  if (gameSession === null) {
+    sendContent(req, res, 'Not in a game lobby!');
+    return;
+  }
+  if (gameSession.appState === null) {
+    sendContent(req, res, 'Can only restart once the game has been started.');
+    return;
+  }
+  gameSession.restartApp();
   sendContent(req, res);
 });
 
