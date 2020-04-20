@@ -42,9 +42,9 @@ class Board {
 
     this.domino_transparent_top_bg = new Sprite('domino_transparent_top_bg.png');
 
-    this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_green, this.domino_t_blue];
-    this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
-    this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
+    this.domino_tops = [this.domino_t_gold, this.domino_t_red, this.domino_t_blue];
+    this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_blue];
+    this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_blue];
     
     this.muted = true;
     this.playing_icon = new Sprite('playing.png');
@@ -63,6 +63,8 @@ class Board {
     this.dragged_domino = 0;
 
     this.gameContainer = new GameState("Me", "Them");
+
+    this.discards = 2;
 
     bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay: !this.muted,loop:true,volume:0.2});
   }
@@ -128,6 +130,7 @@ class Board {
 
     this.ctx.font = "30px Arial";
     this.ctx.fillText(this.lastState.victory === true ? "Success!" : this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
+    this.ctx.fillText("Discards: " + this.discards, layout.turnIndicator.offset.x, layout.turnIndicator.offset.y + 30);
 
     if (layout.discard.bounds === undefined)
       this.relayoutBounds();
@@ -290,6 +293,10 @@ class Board {
     if (this.dragged_domino == 0) {
       return false;
     }
+
+    if (!this.discards) {
+      return false;
+    }
     
     this.gameContainer.state = this.lastState
     var success = this.gameContainer.discardPiece(this.localPlayerId, this.dragged_domino);
@@ -304,6 +311,7 @@ class Board {
           'Content-type': 'application/json; charset=UTF-8'
         }
       });
+      this.discards -= 1;
       this.redraw();
       this.dragged_domino = 0;
     }

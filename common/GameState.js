@@ -7,7 +7,7 @@ class Domino {
   }
 }
 
-const COLOR_COUNT = 3;
+const COLOR_COUNT = 2;
 const START_DECK_SIZE = 15; //not including gold piece
 
 const generateRandomDominoColor = () => {
