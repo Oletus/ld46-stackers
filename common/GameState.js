@@ -46,6 +46,8 @@ class GameState {
       this.state.decks[0].push(this.generateRandomDomino().id);
       this.state.decks[1].push(this.generateRandomDomino().id);
     }
+    this.state.decks[0].sort((a, b) => (this.state.dominos[a].primary === 0 ? -1000 : 0) + (this.state.dominos[a].left - this.state.dominos[b].left) * 100 + (this.state.dominos[a].right - this.state.dominos[b].right) * 10 + (this.state.dominos[a].primary - this.state.dominos[b].primary));
+    this.state.decks[1].sort((a, b) => (this.state.dominos[a].primary === 0 ? -1000 : 0) + (this.state.dominos[a].left - this.state.dominos[b].left) * 100 + (this.state.dominos[a].right - this.state.dominos[b].right) * 10 + (this.state.dominos[a].primary - this.state.dominos[b].primary));
   }
 
   fromJSON(json) {
