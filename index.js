@@ -80,7 +80,7 @@ const getPlayerChunk = (player) => {
     return `<div class="registeredPlayer">You are: <b>${escapeHTML(player.name)}</b>.${playerInfoChunk}</div>`;
   } else {
     return `<p>Welcome to Stacker Slackers, an online multiplayer game made for Ludum Dare 46.</p>
-     <p>Credits: Zachary Laster (<a href="https://www.twitter.com/XCompWiz/">@XCompWiz</a>) - programming, Sedeer el-Showk (<a href="https://www.twitter.com/inspiringsci">@inspiringsci</a>) - programming, Olli Etuaho (<a href="https://www.twitter.com/Oletus/">@Oletus</a>) - music, programming, Antti Hamara - visual art.</p>
+     <p>Credits: <b>Zachary Laster</b> (<a href="https://www.twitter.com/XCompWiz/">@XCompWiz</a>) - programming, <b>Sedeer el-Showk</b> (<a href="https://www.twitter.com/inspiringsci">@inspiringsci</a>) - programming, <b>Olli Etuaho</b> (<a href="https://www.twitter.com/Oletus/">@Oletus</a>) - music, programming, <b>Antti Hamara</b> - visual art.</p>
      <div class="unregisteredPlayer"><form id="registerForm" onsubmit="window.postForm('/register', document.getElementById('registerForm'), true); return false;">
      Enter your name: 
      <input type="text" name="playerName" maxLength="${maxPlayerNameLength}" />
