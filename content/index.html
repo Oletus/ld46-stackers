@@ -52,16 +52,27 @@ let board;
 const delayBetweenRefresh = 2000;
 
 const pollStateFromServer = () => {
-  return playerState === PlayerState.IN_GAME || playerState === PlayerState.REGISTERED;
+  return playerState === PlayerState.IN_GAME || playerState === PlayerState.IN_LOBBY;
 }
 
+const alwaysResetClientInCurrentState = () => {
+  // Always reset the client while in lobby since that updates the players present list.
+  return playerState === PlayerState.IN_LOBBY;
+}
+
+let lastInnerHTML = '';
+
 const replacePage = (html) => {
-  contentDiv.innerHTML = html;
+  // Poor man's way of avoiding unnecessary updates :)
+  if (lastInnerHTML !== html) {
+    contentDiv.innerHTML = html;
+    lastInnerHTML = html;
+  }
 }
 
 const setStateFromResponse = (responseText, resetClient) => {
   const response = JSON.parse(responseText);
-  if (resetClient && response.hasOwnProperty("pageContentHTML")) {
+  if ((resetClient || alwaysResetClientInCurrentState()) && response.hasOwnProperty("pageContentHTML")) {
     replacePage(response.pageContentHTML);
   }
   if (response.hasOwnProperty("gameState")) {
@@ -69,6 +80,8 @@ const setStateFromResponse = (responseText, resetClient) => {
     playerState = PlayerState.IN_GAME;
     // TODO: Should update the game on the client based on the game state!
     board.onStateChange(response.gameState, response.playerId);
+  } else if (response.hasOwnProperty("inGameSession") && response.inGameSession) {
+    playerState = PlayerState.IN_LOBBY;
   } else if (response.hasOwnProperty("playerRegistered") && response.playerRegistered) {
     playerState = PlayerState.REGISTERED;
   }
