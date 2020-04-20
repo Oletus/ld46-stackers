@@ -8,11 +8,16 @@ class Domino {
 }
 
 const COLOR_COUNT = 3;
+const FIXED_TILE_COUNT = 3; //not including gold piece
 const START_DECK_SIZE = 15; //not including gold piece
+
+const generateRandomNumber = (underVal) => {
+  return Math.floor(Math.max(0, Math.random() * underVal - 0.0001));
+}
 
 const generateRandomDominoColor = () => {
   //0 is gold
-  return 1 + Math.floor(Math.max(0, Math.random() * COLOR_COUNT - 0.0001));
+  return 1 + generateRandomNumber(COLOR_COUNT);
 }
 
 class GameState {
@@ -35,6 +40,28 @@ class GameState {
     this.registerDomino(gold1);
     this.registerDomino(gold2);
     
+    var colors = [[0,0], [0,0,0], [0,0,0,0], [0,0,0,0,0], [0,0,0,0,0,0]]
+    for (var y = 0; y < this.state.board.length; ++y) {
+      for (var x = 0; x < this.state.board[y].length; ++x) {
+        colors[y][x] = generateRandomDominoColor();
+      }
+    }
+
+    for (var i = 0; i < FIXED_TILE_COUNT; ++i) {
+      var y = 1 + generateRandomNumber(this.state.board.length - 1)
+      var x = generateRandomNumber(this.state.board[y].length)
+      var left = generateRandomDominoColor();
+      var right = generateRandomDominoColor();
+      if (y < this.state.board.length - 1) {
+        left = colors[y + 1][x];
+        if (x < this.state.board[y].length - 1)
+          right = colors[y + 1][x + 1];
+      }
+      var fixed = new Domino(this.nextDominoId++, colors[y][x], left, right);
+      this.registerDomino(fixed);
+      this.state.board[y][x] = fixed.id;
+    }
+
     // half the time, swap, so the players don't know which side of the domino they have is shared
     if (Math.random() > 0.5)
       [gold1, gold2] = [gold2, gold1];
@@ -42,8 +69,7 @@ class GameState {
     // decks store ids of dominos; dominos are looked up from state.dominos dictionary
     this.state.decks[0].push(gold1.id);
     this.state.decks[1].push(gold2.id);
-    var i;
-    for (i = 0; i < START_DECK_SIZE; ++i) {
+    for (var i = 0; i < START_DECK_SIZE; ++i) {
       this.state.decks[0].push(this.generateRandomDomino().id);
       this.state.decks[1].push(this.generateRandomDomino().id);
     }
