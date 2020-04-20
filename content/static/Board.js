@@ -232,7 +232,7 @@ class Board {
     } else if (isInside(layout.discard.bounds, x, y)) {
       this.tryClickDiscard();
     } else if (isInside(layout.muteIcon.bounds, x, y)) {
-      this.mute();
+      this.toggleMute();
     }
   }
 
@@ -274,7 +274,7 @@ class Board {
     this.tryPlaceDomino(this.dragged_domino, gridPos)
   }
   
-  mute() {
+  toggleMute() {
     this.muted = !this.muted;
     bgm.mute(this.muted);
     this.redraw();
