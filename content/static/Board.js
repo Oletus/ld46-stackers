@@ -129,6 +129,7 @@ class Board {
     this.ctx.stroke();
 
     this.ctx.font = "30px Arial";
+    this.ctx.fillStyle = '#000';
     this.ctx.fillText(this.lastState.victory === true ? "Success!" : this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
 
     if (layout.discard.bounds === undefined)
@@ -153,6 +154,13 @@ class Board {
     this.domino_tops[domino.primary].draw(this.ctx, x, y, layout.domino.width, layout.domino.height);
     this.domino_bottom_lefts[domino.left].draw(this.ctx, x, y, layout.domino.width, layout.domino.height);
     this.domino_bottom_rights[domino.right].draw(this.ctx, x, y, layout.domino.width, layout.domino.height);
+    if (domino.word !== undefined && domino.word !== "") {
+      this.ctx.textAlign = "center";
+      this.ctx.font = "15px Arial";
+      this.ctx.fillStyle = '#fff';
+      this.ctx.fillText(domino.word, x + layout.domino.width * 0.5, y + layout.domino.height * 0.5);
+      this.ctx.textAlign = "left";
+    }
   }
 
   drawPieces(state) {
