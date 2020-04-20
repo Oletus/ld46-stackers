@@ -58,7 +58,7 @@ const getPlayerChunk = (player) => {
         otherPlayers = `<b>${otherPlayers}</b>`;
       }
       playerInfoChunk = `<p>Other players currently in lobby: ${otherPlayers}.</p>
-      <p>Invite others to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
+      <p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
       <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
       </form></div>`;
