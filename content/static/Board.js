@@ -45,8 +45,8 @@ class Board {
     this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
     
     this.muted = false;
-    this.mute_icon = new Sprite('mute.png');
-    this.unmute_icon = new Sprite('unmute.png');
+    this.playing_icon = new Sprite('playing.png');
+    this.muted_icon = new Sprite('muted.png');
 
     layout.domino.width = this.domino_base.img.width;
     layout.domino.height = this.domino_base.img.height;
@@ -132,9 +132,9 @@ class Board {
  
   drawAudioIcons() {
     if (this.muted) {
-      this.unmute_icon.draw(this.ctx, layout.muteIcon.bounds.left, layout.muteIcon.bounds.top, layout.muteIcon.width, layout.muteIcon.height);
+      this.muted_icon.draw(this.ctx, layout.muteIcon.bounds.left, layout.muteIcon.bounds.top, layout.muteIcon.width, layout.muteIcon.height);
     } else {
-      this.mute_icon.draw(this.ctx, layout.muteIcon.bounds.left, layout.muteIcon.bounds.top, layout.muteIcon.width, layout.muteIcon.height);
+      this.playing_icon.draw(this.ctx, layout.muteIcon.bounds.left, layout.muteIcon.bounds.top, layout.muteIcon.width, layout.muteIcon.height);
     }
   } 
   
