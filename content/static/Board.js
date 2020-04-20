@@ -334,6 +334,9 @@ class Board {
   }
 
   tryPickupDomino(dominoId) {
+    if (this.lastState.victory === true || this.lastState.victory === false)
+      return;
+
     if (this.localPlayerId != this.lastState.turn) {
       return;
     }

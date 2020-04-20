@@ -18,7 +18,7 @@ const generateRandomDominoColor = () => {
 class GameState {
   constructor(players) {
     this.players = [...players];
-    this.state = { id: 0, turn: 0, victory:false, decks: [[], []], dominos: {}, board: [] };
+    this.state = { id: 0, turn: 0, victory:null, decks: [[], []], dominos: {}, board: [] };
     this.nextDominoId = 0
     this.generateNewGame();
   }
