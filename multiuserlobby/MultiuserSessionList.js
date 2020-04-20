@@ -20,8 +20,9 @@ const genAccessCode = function(length) {
 
 class MultiuserSessionList {
 
-  constructor(accessCodeLength) {
+  constructor(accessCodeLength, maxUserNameLength) {
     this.accessCodeLength = accessCodeLength;
+    this.maxUserNameLength = maxUserNameLength;
 
     this.allRegisteredUsers = [];  // Array of "MultiuserUser". TODO: Maybe support removing users after a timeout?
     this.ongoingSessions = [];  // All ongoing sessions.
@@ -33,6 +34,9 @@ class MultiuserSessionList {
     if (httpSession.hasOwnProperty("multiuserId")) {
       // Already registered.
       return;
+    }
+    if (userName.length > this.maxUserNameLength) {
+      userName = userName.substring(0, this.maxUserNameLength);
     }
     httpSession.multiuserId = this.allRegisteredUsers.length + 1;
     this.allRegisteredUsers.push(new MultiuserUser(httpSession.multiuserId, userName));

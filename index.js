@@ -8,6 +8,7 @@ import yargs from 'yargs';
 
 import { GameState } from './common/GameState.js';
 import { MultiuserSessionList } from './multiuserlobby/MultiuserSessionList.js';
+import { escapeHTML } from './multiuserlobby/htmlUtil.js';
 
 const prepareCommands = () => yargs
   .alias('p', 'port')
@@ -31,25 +32,9 @@ var sessionSettings = {
 }
 app.use(session(sessionSettings));
 
-const escapeHTML = (unsafe) => {
-  return unsafe.replace(/[&<>"']/g, function(m) {
-    switch (m) {
-      case '&':
-        return '&amp;';
-      case '<':
-        return '&lt;';
-      case '>':
-        return '&gt;';
-      case '"':
-        return '&quot;';
-      default:
-        return '&#039;';
-    }
-  });
-};
-
 const accessCodeLength = 5;
-const gameList = new MultiuserSessionList(accessCodeLength);
+const maxPlayerNameLength = 20;
+const gameList = new MultiuserSessionList(accessCodeLength, maxPlayerNameLength);
 
 const indexHTML = fs.readFileSync('content/index.html', 'utf8');
 
@@ -66,18 +51,33 @@ const getPlayerChunk = (player) => {
       <input type="submit" value="Start a new game lobby" />
       </form></div>`;
     } else {
-      // TODO: List all players in the lobby here.
-      playerInfoChunk = `
-	  The lobby access code is: ${multiuserSession.accessCode}.
-	  <div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
+      let otherPlayers = multiuserSession.userNameListHTML(player);
+      if (otherPlayers === "") {
+        otherPlayers = 'none';
+      } else {
+        otherPlayers = `<b>${otherPlayers}</b>`;
+      }
+
+      let gameControlForm = `<div class="formGrid"><form id="startGameForm" onsubmit="window.postForm('/startGame', document.getElementById('startGameForm'), true); return false;">
       <input type="submit" value="Play game" />
       </form></div>`;
+      if (multiuserSession.appState !== null) {
+        gameControlForm = `<div class="formGrid"><form id="restartGameForm" onsubmit="window.postForm('/restartGame', document.getElementById('restartGameForm'), true); return false;">
+      <input type="submit" value="Restart game" />
+      </form></div>`;
+      }
+
+      playerInfoChunk = `<p>Other players currently in lobby: ${otherPlayers}.</p>
+      <p>Invite another player to join using this access code: <b>${multiuserSession.accessCode}</b>.</p>
+      ${gameControlForm}`;
     }
-    return `<div class="registeredPlayer">You are: ${escapeHTML(player.name)}.${playerInfoChunk}</div>`;
+    return `<div class="registeredPlayer">You are: <b>${escapeHTML(player.name)}</b>.${playerInfoChunk}</div>`;
   } else {
-    return `<div class="unregisteredPlayer"><form id="registerForm" onsubmit="window.postForm('/register', document.getElementById('registerForm'), true); return false;">
-     Your name: 
-     <input type="text" name="playerName" />
+    return `<p>Welcome to Stacker Slackers, an online multiplayer game made for Ludum Dare 46.</p>
+     <p>Credits: Zachary Laster (<a href="https://www.twitter.com/XCompWiz/">@XCompWiz</a>) - programming, Sedeer el-Showk (<a href="https://www.twitter.com/inspiringsci">@inspiringsci</a>) - programming, Olli Etuaho (<a href="https://www.twitter.com/Oletus/">@Oletus</a>) - music, programming, Antti Hamara - visual art.</p>
+     <div class="unregisteredPlayer"><form id="registerForm" onsubmit="window.postForm('/register', document.getElementById('registerForm'), true); return false;">
+     Enter your name: 
+     <input type="text" name="playerName" maxLength="${maxPlayerNameLength}" />
      <input type="submit" value="Register" />
      </form></div>`;
   }
@@ -92,14 +92,16 @@ app.use('/common', express.static('common'));
 
 const sendContent = (req, res, notification) => {
   const player = gameList.getUser(req.session);
+  const gameSession = gameList.getCurrentSessionForUser(player);
   const responseJson = {
     pageContentHTML: getPlayerChunk(player),
     playerRegistered: player !== null,
+    inGameSession: gameSession != null,
   };
-  const gameSession = gameList.getCurrentSessionForUser(player);
   let gameState = null;
   if (gameSession != null) {
     gameState = gameSession.appState;
+    responseJson.gameSessionAccessCode = gameSession.accessCode;
   }
   if (gameState !== null) {
     responseJson.playerId = gameState.getPlayerId(player.name);
@@ -204,6 +206,25 @@ app.post('/startGame', (req, res) => {
     return;
   }
   gameSession.startApp((users) => new GameState(users));
+  sendContent(req, res);
+});
+
+app.post('/restartGame', (req, res) => {
+  const user = gameList.getUser(req.session);
+  if (user === null) {
+    sendContent(req, res, 'You are not registered!');
+    return;
+  }
+  const gameSession = gameList.getCurrentSessionForUser(user);
+  if (gameSession === null) {
+    sendContent(req, res, 'Not in a game lobby!');
+    return;
+  }
+  if (gameSession.appState === null) {
+    sendContent(req, res, 'Can only restart once the game has been started.');
+    return;
+  }
+  gameSession.restartApp();
   sendContent(req, res);
 });
 

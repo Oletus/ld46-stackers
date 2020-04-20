@@ -1,4 +1,6 @@
 
+import { escapeHTML } from './htmlUtil.js';
+
 class MultiuserSession {
 
   constructor(accessCode, users, apiOptions) {
@@ -12,6 +14,7 @@ class MultiuserSession {
     this.options = {...defaultOptions, ...apiOptions};
 
     this.appState = null;
+    this.lastCreateStateFunc = null;
   }
 
   tryJoin(user) {
@@ -45,7 +48,26 @@ class MultiuserSession {
   }
 
   startApp(createStateFunc) {
-    this.appState = createStateFunc(this.users);
+    this.lastCreateStateFunc = createStateFunc;
+    this.appState = this.lastCreateStateFunc(this.users);
+  }
+
+  restartApp() {
+    if (this.lastCreateStateFunc !== null) {
+      this.appState = this.lastCreateStateFunc(this.users);
+    }
+  }
+
+  userNameList(excludeUser) {
+    if (excludeUser) {
+      return this.users.filter(user => user != excludeUser).map(x => x.name);
+    } else {
+      return this.users.map(x => x.name);
+    }
+  }
+
+  userNameListHTML(excludeUser) {
+    return this.userNameList(excludeUser).map(name => escapeHTML(name)).join(', ');
   }
 
 }
