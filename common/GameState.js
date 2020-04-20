@@ -18,12 +18,13 @@ const generateRandomDominoColor = () => {
 class GameState {
   constructor(players) {
     this.players = [...players];
-    this.state = { id: 0, turn: 0, victory:false, decks: [[], []], dominos: {}, board: [] };
-    this.nextDominoId = 0
     this.generateNewGame();
   }
   
   generateNewGame() {
+    this.state = { id: 0, turn: 0, victory:null, decks: [[], []], dominos: {}, board: [] };
+    this.nextDominoId = 0
+
     // board stores ids of dominos; dominos are looked up from state.dominos dictionary
     this.state.board = [[0,0], [0,0,0], [0,0,0,0], [0,0,0,0,0], [0,0,0,0,0,0]]
 
