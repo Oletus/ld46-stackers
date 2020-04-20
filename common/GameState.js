@@ -18,7 +18,7 @@ const generateRandomDominoColor = () => {
 class GameState {
   constructor(players) {
     this.players = [...players];
-    this.state = { id: 0, turn: 0, decks: [[], []], dominos: {}, board: [] };
+    this.state = { id: 0, turn: 0, victory:false, decks: [[], []], dominos: {}, board: [] };
     this.nextDominoId = 0
     this.generateNewGame();
   }
@@ -96,6 +96,23 @@ class GameState {
     this.state.decks[playerIndex] = newDeck;
     return true;
   }
+  
+  testVictory() {
+    var left = this.state.board[0][0];
+      if (left === 0)
+        return false;
+    var right = this.state.board[0][1]
+    if (right === 0)
+      return false;
+
+    left = this.state.dominos[left];
+    right = this.state.dominos[right];
+    if (0 !== left.primary || 0 !== right.primary)
+      return false;
+
+    this.state.victory = true;
+    return true;
+  }
 
   placePiece(playerIndex, pieceId, slotCoord) {
     if (playerIndex != this.state.turn)
@@ -135,6 +152,9 @@ class GameState {
 
     this.state.board[slotCoord.y][slotCoord.x] = pieceId
     this.state.turn = (playerIndex + 1) % 2;
+    
+    this.testVictory();
+    
     return true;
   }
 }
