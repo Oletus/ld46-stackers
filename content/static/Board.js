@@ -44,7 +44,7 @@ class Board {
     this.domino_bottom_lefts = [this.domino_bl_red, this.domino_bl_red, this.domino_bl_green, this.domino_bl_blue];
     this.domino_bottom_rights = [this.domino_bl_red, this.domino_br_red, this.domino_br_green, this.domino_br_blue];
     
-    this.muted = false;
+    this.muted = true;
     this.playing_icon = new Sprite('playing.png');
     this.muted_icon = new Sprite('muted.png');
 
@@ -62,7 +62,7 @@ class Board {
 
     this.gameContainer = new GameState("Me", "Them");
 
-    bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay:false,loop:true,volume:0.2});
+    bgm = new window.Howl({src:'chilling_at_the_pyramid.mp3',autoplay: !this.muted,loop:true,volume:0.2});
   }
   
   relayoutBounds() {
