@@ -130,12 +130,13 @@ class Board {
 
     this.ctx.font = "30px Arial";
     this.ctx.fillText(this.lastState.victory === true ? "Success!" : this.localPlayerId === this.lastState.turn ? "Your Turn" : "Waiting", layout.turnIndicator.offset.x, layout.turnIndicator.offset.y);
-    this.ctx.fillText("Discards: " + this.discards, layout.turnIndicator.offset.x, layout.turnIndicator.offset.y + 30);
 
     if (layout.discard.bounds === undefined)
       this.relayoutBounds();
 
     this.ctx.fillRect(layout.discard.bounds.left, layout.discard.bounds.top , layout.discard.bounds.right - layout.discard.bounds.left, layout.discard.bounds.bottom - layout.discard.bounds.top);
+    this.ctx.fillText("Discard", layout.discard.bounds.left + 15, layout.discard.bounds.bottom + 30);
+    this.ctx.fillText("(" + this.discards + " left)", layout.discard.bounds.left + 25,  layout.discard.bounds.bottom + 60);
     this.drawAudioIcons();
   }
  
