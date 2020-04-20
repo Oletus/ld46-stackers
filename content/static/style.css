@@ -3,5 +3,11 @@
 }
 
 body {
-    background: #ccc;
+    background: #77acc7;
+    color: #000;
+    font-size: 20px;
+}
+
+input {
+    font-size: 20px;
 }
