@@ -22,6 +22,8 @@ const config = {
 
 const app = express();
 
+var logAll = false; // include log messages with player names
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
@@ -146,14 +148,14 @@ app.post('/register', (req, res) => {
   if (reqData === null) {
     return;
   }
-  console.log('Player register request:', req.body);
+  if (logAll) console.log('Player register request:', req.body);
   if (!reqData.hasOwnProperty("playerName") || reqData.playerName === "") {
     sendContent(req, res, 'playerName not set in register request');
     return;
   }
   const playerName = reqData.playerName;
   if (gameList.tryRegisterUser(req.session, playerName)) {
-    console.log('Player registered:', playerName);
+    if (logAll) console.log('Player registered:', playerName);
     sendContent(req, res);
     return;
   } else {
@@ -262,7 +264,7 @@ app.post('/place_piece', (req, res) => {
     sendContent(req, res, 'You are not registered!');
     return;
   }
-  console.log('Player requested piece placement:', player.name, req.body)
+  if (logAll) console.log('Player requested piece placement:', player.name, req.body)
   if (req.body === undefined) {
     sendContent(req, res, 'Request malformed');
     return;
@@ -299,7 +301,7 @@ app.post('/discard_piece', (req, res) => {
     sendContent(req, res, 'You are not registered!');
     return;
   }
-  console.log('Player requested piece placement:', player.name, req.body)
+  if (logAll) console.log('Player requested piece placement:', player.name, req.body)
   if (req.body === undefined) {
     sendContent(req, res, 'Request malformed');
     return;
